@@ -1,0 +1,37 @@
+
+
+services:
+  # 1. Фронтенд в Docker с моками (демонстрация)
+  frontend-mocks:
+    build: .
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_USE_MOCKS=true
+    profiles:
+      - docker-mocks
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 2. Фронтенд в Docker с реальным бэкендом (порт 8080 должен быть свободен)
+  frontend-backend:
+    build: .
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://host.docker.internal:8080
+      - REACT_APP_USE_MOCKS=false
+    profiles:
+      - docker-backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  default:
+    name: event-booking-network 
