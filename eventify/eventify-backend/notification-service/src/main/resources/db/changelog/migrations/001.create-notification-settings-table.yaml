@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: zipprey
+      comment: Создание таблицы настроек уведомлений
+      changes:
+        - createTable:
+            tableName: notification_settings
+            columns:
+              - column:
+                  name: customer_email
+                  type: varchar(70)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: notify_new_events
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: true
+
+              - column:
+                  name: notify_upcoming
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: true
+
+              - column:
+                  name: notify_before_hours
+                  type: int
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 24
+
+        - sql:
+            sql: >
+              ALTER TABLE notification_settings
+              ADD CONSTRAINT check_notify_before_hours
+              CHECK (notify_before_hours BETWEEN 1 AND 24);

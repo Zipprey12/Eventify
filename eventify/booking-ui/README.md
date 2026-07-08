@@ -51,7 +51,7 @@ npm run docker:mocks
 
 **Предварительные требования:**
 - [Docker](https://docs.docker.com/get-docker/) 
-- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Docker Compose]( https://docs.docker.com/compose/install/)
 - **Ваш бэкенд должен быть запущен на порту 8080**
 
 **Запуск:**

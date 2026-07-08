@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: zipprey
+      comment: Создание таблицы событий
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: text
+
+              - column:
+                  name: date
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: total_places
+                  type: int
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: available_places
+                  type: int
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+
+              - column:
+                  name: image_url
+                  type: varchar(500)

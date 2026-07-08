@@ -18,12 +18,13 @@ services:
 
   # 2. Фронтенд в Docker с реальным бэкендом (порт 8080 должен быть свободен)
   frontend-backend:
-    build: .
+    build:
+      context: .
+      args:
+        REACT_APP_API_URL: http://localhost:8080
+        REACT_APP_USE_MOCKS: "false"
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://host.docker.internal:8080
-      - REACT_APP_USE_MOCKS=false
     profiles:
       - docker-backend
     healthcheck:

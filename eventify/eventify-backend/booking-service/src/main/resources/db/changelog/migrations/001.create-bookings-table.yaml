@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: zipprey
+      comment: Создание таблицы бронирований
+      changes:
+        - createTable:
+            tableName: bookings
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: customer_email
+                  type: varchar(70)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: ticket_count
+                  type: int
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expiry_time
+                  type: timestamptz
+
+              - column:
+                  name: confirmed
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: false
+
+              - column:
+                  name: timezone
+                  type: varchar(50)
+
+  - changeSet:
+      id: 2
+      author: zipprey
+      comment: Создание индексов  для таблицы бронирований
+      changes:
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_customer_email
+            columns:
+              - column:
+                  name: customer_email
+
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_event_id
+            columns:
+              - column:
+                  name: event_id
