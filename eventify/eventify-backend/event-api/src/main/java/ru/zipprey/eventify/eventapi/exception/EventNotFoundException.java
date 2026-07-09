@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.event.exception;
+package ru.zipprey.eventify.eventapi.exception;
 
 public class EventNotFoundException extends RuntimeException {
 

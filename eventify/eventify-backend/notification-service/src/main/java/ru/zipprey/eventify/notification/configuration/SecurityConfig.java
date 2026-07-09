@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.booking.config;
+package ru.zipprey.eventify.notification.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +8,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import ru.zipprey.eventify.common.configuration.BaseSecurityConfiguration;
 import ru.zipprey.eventify.common.security.JwtAuthenticationFilter;
 
-@EnableWebSecurity
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig extends BaseSecurityConfiguration {
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -18,12 +18,9 @@ public class SecurityConfig extends BaseSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        return configureCommon(http)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/actuator/health").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .build();
+        http.authorizeHttpRequests(auth -> auth
+                .anyRequest().authenticated()
+        );
+        return buildFilterChain(http);
     }
 }

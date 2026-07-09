@@ -6,9 +6,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.zipprey.eventify.common.model.ErrorResponse;
 import ru.zipprey.eventify.common.model.Level;
+import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
+import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 
 @RestControllerAdvice
 public class EventExceptionHandler {
+
+    @ExceptionHandler(CapacityReductionException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleCapacityReduction(CapacityReductionException e) {
+        return new ErrorResponse("CAPACITY_REDUCTION_NOT_ALLOWED", Level.ERROR, e.getMessage(), null);
+    }
 
     @ExceptionHandler(EventNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -16,9 +24,9 @@ public class EventExceptionHandler {
         return new ErrorResponse("EVENT_NOT_FOUND", Level.ERROR, e.getMessage(), null);
     }
 
-    @ExceptionHandler(CapacityReductionException.class)
+    @ExceptionHandler(NotEnoughTicketsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleCapacityReduction(CapacityReductionException e) {
-        return new ErrorResponse("CAPACITY_REDUCTION_NOT_ALLOWED", Level.ERROR, e.getMessage(), null);
+    public ErrorResponse handleNotEnoughTickets(NotEnoughTicketsException e) {
+        return new ErrorResponse("NOT_ENOUGH_TICKETS", Level.ERROR, e.getMessage(), null);
     }
 }

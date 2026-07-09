@@ -1,19 +1,23 @@
 package ru.zipprey.eventify.event.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.zipprey.eventify.event.exception.CapacityReductionException;
-import ru.zipprey.eventify.event.exception.EventNotFoundException;
 import ru.zipprey.eventify.event.mapper.EventMapper;
 import ru.zipprey.eventify.event.model.dto.request.EventRequest;
 import ru.zipprey.eventify.event.repository.EventRepository;
+import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
+import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -28,6 +32,13 @@ public class EventServiceImpl implements EventService {
             throw new EventNotFoundException(id);
         }
         return mapper.toDto(found.get());
+    }
+
+    @Override
+    public List<EventDto> findByIds(List<Long> ids) {
+        return repository.findAllById(ids).stream()
+                .map(mapper::toDto)
+                .toList();
     }
 
     @Override
@@ -72,5 +83,28 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new EventNotFoundException(id));
 
         repository.deleteById(id);
+    }
+
+    @Override
+    public void bookTickets(Long id, int count) {
+        var event = repository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException(id));
+
+        if (event.getAvailableTickets() < count) {
+            throw new NotEnoughTicketsException(event.getTitle(), event.getAvailableTickets());
+        }
+
+        event.setAvailableTickets(event.getAvailableTickets() - count);
+        log.info("{} {}", event.getAvailableTickets(), event);
+        repository.save(event);
+    }
+
+    @Override
+    public void freeUpPlaces(Long id, int count) {
+        var event = repository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException(id));
+
+        event.setAvailableTickets(event.getAvailableTickets() + count);
+        repository.save(event);
     }
 }

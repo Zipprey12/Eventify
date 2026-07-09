@@ -8,6 +8,7 @@ val springDocVersion = "3.0.3"
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":service-security"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

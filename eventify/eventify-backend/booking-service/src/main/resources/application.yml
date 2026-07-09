@@ -12,3 +12,9 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+
+internal:
+  secret: ${BOOKING_INTERNAL_API_KEY}
+
+event-service:
+  base-url: http://event-service:8082

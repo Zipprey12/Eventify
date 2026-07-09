@@ -14,6 +14,7 @@ import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.time.Instant;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +30,12 @@ public class AdminBookingServiceImpl implements AdminBookingService {
         var existed = repository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException(id));
 
-        if (existed.getExpiryTime().isBefore(Instant.now())) {
+        var expiryTime = existed.getExpiryTime();
+        if (expiryTime == null || expiryTime.isBefore(Instant.now())) {
             throw new BookingExpiredException(id);
         }
 
-        caller.bookTickets(existed.getEventId(), existed.getTicketsCount());
+        caller.bookTickets(existed.getEventId(), existed.getTicketsCount()).block();
 
         existed.setConfirmed(true);
         repository.save(existed);
@@ -48,7 +50,9 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .distinct()
                 .toList();
 
-        var events = caller.findByIds(eventIds);
+        var events = caller.findByIds(eventIds)
+                .collectMap(EventDto::getId, Function.identity())
+                .block();
 
         return found.map(booking -> {
             var response = mapper.toResponse(booking);
@@ -63,7 +67,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
         if (found.getConfirmed()) {
-            caller.freeUpPlaces(found.getEventId(), found.getTicketsCount());
+            caller.freeUpPlaces(found.getEventId(), found.getTicketsCount()).block();
         }
         repository.deleteById(bookingId);
     }

@@ -31,7 +31,7 @@ public class BookingController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookingResponse create(@RequestBody CreateBookingRequest request, Authentication authentication){
-        return service.save(request, authentication);
+        return service.create(request, authentication);
     }
 
     @PutMapping("/{id}")

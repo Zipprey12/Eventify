@@ -15,12 +15,16 @@ import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
+    public static final Duration BOOKING_CONFIRMATION_DURATION = Duration.ofDays(2);
     private final BookingRepository repository;
     private final BookingMapper mapper;
     private final EventsServiceCaller eventsCaller;
@@ -47,16 +51,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse save(CreateBookingRequest request, Authentication authentication) {
-        var event = eventsCaller.findById(request.getEventId());
+    public BookingResponse create(CreateBookingRequest request, Authentication authentication) {
+        var event = eventsCaller.findById(request.getEventId()).block();
 
         if (event.getAvailableTickets() < request.getTicketCount()) {
             throw new NotEnoughTicketsException(event.getTitle(), event.getAvailableTickets());
         }
 
         var entity = mapper.toEntity(request, getEmailKey(authentication));
-        var saved = repository.save(entity);
+        entity.setExpiryTime(Instant.now().plus(BOOKING_CONFIRMATION_DURATION));
 
+        var saved = repository.save(entity);
         return fillEvent(saved, event);
     }
 
@@ -68,7 +73,7 @@ public class BookingServiceImpl implements BookingService {
             var eventId = found.getEventId();
             var count = found.getTicketsCount();
 
-            eventsCaller.freeUpPlaces(eventId, count);
+            eventsCaller.freeUpPlaces(eventId, count).block();
         }
         repository.deleteById(id);
     }
@@ -82,7 +87,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse fillEvent(Booking booking) {
-        var event = eventsCaller.findById(booking.getEventId());
+        var event = eventsCaller.findById(booking.getEventId()).block();
         var response = mapper.toResponse(booking);
         response.setEvent(event);
         return response;
@@ -93,7 +98,10 @@ public class BookingServiceImpl implements BookingService {
                 .map(Booking::getEventId)
                 .toList();
 
-        var events = eventsCaller.findByIds(eventIds);
+        var events = eventsCaller.findByIds(eventIds).
+                collectMap(EventDto::getId, Function.identity())
+                .block();
+
         return bookings.stream()
                 .map(mapper::toResponse)
                 .map(r -> {

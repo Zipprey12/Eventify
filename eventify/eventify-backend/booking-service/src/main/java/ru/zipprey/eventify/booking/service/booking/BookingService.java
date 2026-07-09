@@ -15,7 +15,7 @@ public interface BookingService {
 
     BookingResponse update(Long id, UpdateBookingRequest request, Authentication authentication);
 
-    BookingResponse save(CreateBookingRequest request, Authentication authentication);
+    BookingResponse create(CreateBookingRequest request, Authentication authentication);
 
     void delete(long id, Authentication authentication);
 }

@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: zipprey
+      comment: Создание таблицы привязок Telegram
+      changes:
+        - createTable:
+            tableName: telegram_links
+            columns:
+              - column:
+                  name: customer_email
+                  type: varchar(70)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: chat_id
+                  type: bigint
+
+              - column:
+                  name: link_code
+                  type: varchar(64)
+
+              - column:
+                  name: link_code_expires_at
+                  type: timestamptz

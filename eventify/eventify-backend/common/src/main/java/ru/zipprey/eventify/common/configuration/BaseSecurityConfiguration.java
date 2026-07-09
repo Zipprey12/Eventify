@@ -16,13 +16,16 @@ public abstract class BaseSecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     protected SecurityFilterChain buildFilterChain(HttpSecurity http) {
-        http
+        return configureCommon(http).build();
+    }
+
+    protected HttpSecurity configureCommon(HttpSecurity httpSecurity){
+        return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED))))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
     }
 }

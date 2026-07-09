@@ -8,22 +8,34 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import ru.zipprey.eventify.common.configuration.BaseSecurityConfiguration;
 import ru.zipprey.eventify.common.security.JwtAuthenticationFilter;
+import ru.zipprey.eventify.internalsecurity.InternalApiKeyFilter;
+
+import static ru.zipprey.eventify.internalsecurity.InternalServiceKeysProperties.INTERNAL_SERVICE_ROLE;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends BaseSecurityConfiguration {
 
-    protected SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    private final InternalApiKeyFilter internalApiKeyFilter;
+
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter,
+                                 InternalApiKeyFilter internalApiKeyFilter) {
         super(jwtAuthenticationFilter);
+        this.internalApiKeyFilter = internalApiKeyFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/events/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-        );
-        return buildFilterChain(http);
+        return configureCommon(http)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/events/batch").hasRole(INTERNAL_SERVICE_ROLE)
+                        .requestMatchers(HttpMethod.PUT, "/events/*/book").hasRole(INTERNAL_SERVICE_ROLE)
+                        .requestMatchers(HttpMethod.PUT, "/events/*/free").hasRole(INTERNAL_SERVICE_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/events/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(internalApiKeyFilter, JwtAuthenticationFilter.class)
+                .build();
     }
 }

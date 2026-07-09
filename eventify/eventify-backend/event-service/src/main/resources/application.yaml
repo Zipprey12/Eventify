@@ -12,3 +12,7 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+
+internal:
+  trusted-services:
+    booking-service: ${BOOKING_INTERNAL_API_KEY}

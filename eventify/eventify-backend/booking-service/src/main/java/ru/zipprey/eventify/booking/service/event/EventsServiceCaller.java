@@ -1,5 +1,7 @@
 package ru.zipprey.eventify.booking.service.event;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.util.List;
@@ -7,11 +9,11 @@ import java.util.Map;
 
 public interface EventsServiceCaller {
 
-    EventDto findById(long id);
+    Mono<EventDto> findById(long id);
 
-    Map<Long, EventDto> findByIds(List<Long> ids);
+    Flux<EventDto> findByIds(List<Long> ids);
 
-    void bookTickets(long eventId, int count);
+    Mono<Void> bookTickets(long eventId, int count);
 
-    void freeUpPlaces(long eventId, int count);
+    Mono<Void> freeUpPlaces(long eventId, int count);
 }

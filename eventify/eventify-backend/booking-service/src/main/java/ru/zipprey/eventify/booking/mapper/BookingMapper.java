@@ -19,7 +19,7 @@ public interface BookingMapper {
     void updateEntity(UpdateBookingRequest request, @MappingTarget Booking booking);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "confirmed", ignore = true)
+    @Mapping(target = "confirmed", constant = "false")
     @Mapping(target = "expiryTime", ignore = true)
     @Mapping(target = "ticketsCount", source = "request.ticketCount")
     Booking toEntity(CreateBookingRequest request, String customerEmail);

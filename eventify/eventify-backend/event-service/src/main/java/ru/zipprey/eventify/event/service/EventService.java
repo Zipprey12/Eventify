@@ -6,10 +6,13 @@ import ru.zipprey.eventify.event.model.dto.request.EventRequest;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.time.Instant;
+import java.util.List;
 
 public interface EventService {
 
     EventDto findById(long id);
+
+    List<EventDto> findByIds(List<Long> ids);
 
     Page<EventDto> findAll(Pageable pageable, Instant from, Instant to);
 
@@ -18,4 +21,8 @@ public interface EventService {
     EventDto update(Long id, EventRequest updateRequest);
 
     void delete(long id);
+
+    void bookTickets(Long id, int count);
+
+    void freeUpPlaces(Long id, int count);
 }
