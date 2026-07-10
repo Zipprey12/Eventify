@@ -19,6 +19,17 @@ type FormData = yup.InferType<typeof schema> & {
   coverUrl?: string;
 };
 
+const toDatetimeLocalValue = (isoString: string): string => {
+  const date = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 interface EventFormProps {
   mode: 'create' | 'edit';
 }
@@ -52,7 +63,7 @@ const EventForm: React.FC<EventFormProps> = ({ mode }) => {
       reset({
         title: eventData.title,
         description: eventData.description,
-        dateTime: new Date(eventData.dateTime).toISOString().slice(0, 16),
+        dateTime: toDatetimeLocalValue(eventData.dateTime),
         totalTickets: eventData.totalTickets,
         coverUrl: eventData.coverUrl,
       });

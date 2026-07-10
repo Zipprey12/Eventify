@@ -10,25 +10,28 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":event-api"))
     implementation(project(":service-security"))
-
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(project(":kafka-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
-    runtimeOnly("org.postgresql:postgresql")
-
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    runtimeOnly("org.postgresql:postgresql")
+
+    implementation("org.springframework.kafka:spring-kafka")
 
     compileOnly("jakarta.servlet:jakarta.servlet-api")
+
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
 
     compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")                                           // 1. Сначала Lombok
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion") // 2. Связка
-    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")                // 3. Потом Mapstruct
+    annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testCompileOnly("org.projectlombok:lombok")

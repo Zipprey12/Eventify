@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.zipprey.eventify.event.exception.CapacityReductionException;
 import ru.zipprey.eventify.event.mapper.EventMapper;
+import ru.zipprey.eventify.event.messaging.EventMessageProducer;
 import ru.zipprey.eventify.event.model.dto.request.EventRequest;
 import ru.zipprey.eventify.event.repository.EventRepository;
 import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
@@ -24,6 +25,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository repository;
     private final EventMapper mapper;
+    private final EventMessageProducer producer;
 
     @Override
     public EventDto findById(long id) {
@@ -51,7 +53,11 @@ public class EventServiceImpl implements EventService {
     public EventDto create(EventRequest request) {
         var mapped = mapper.toEntity(request);
         mapped.setAvailableTickets(request.getTotalTickets());
-        return mapper.toDto(repository.save(mapped));
+
+        var saved = repository.save(mapped);
+        producer.publish(mapper.toCreateMessage(saved));
+
+        return mapper.toDto(saved);
     }
 
     @Override
@@ -59,7 +65,9 @@ public class EventServiceImpl implements EventService {
         var existing = repository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
+        var previousDate = existing.getDate();
         mapper.updateEntity(request, existing);
+
         if (request.getTotalTickets() != null
                 && !Objects.equals(request.getTotalTickets(), existing.getTotalTickets())) {
 
@@ -74,7 +82,11 @@ public class EventServiceImpl implements EventService {
             existing.setAvailableTickets(existing.getAvailableTickets() + diff);
         }
 
-        return mapper.toDto(repository.save(existing));
+        var saved = repository.save(existing);
+        if(!previousDate.equals(existing.getDate())){
+            producer.publish(mapper.toDateChangedMessage(saved));
+        }
+        return mapper.toDto(saved);
     }
 
     @Override
