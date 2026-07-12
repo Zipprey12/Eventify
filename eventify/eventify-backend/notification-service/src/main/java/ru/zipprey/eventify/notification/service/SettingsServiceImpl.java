@@ -16,6 +16,15 @@ public class SettingsServiceImpl implements NotificationService {
     private final SettingsRepository repository;
     private final SettingMapper mapper;
 
+    private static Settings createDefault(String email) {
+        return Settings.builder()
+                .customerEmail(email)
+                .notifyBeforeHours(24)
+                .notifyNewEvents(true)
+                .notifyUpcoming(true)
+                .build();
+    }
+
     @Override
     public SettingsDto getOrCreate(Authentication authentication) {
         var email = EmailValidator.getEmail(authentication);
@@ -49,14 +58,5 @@ public class SettingsServiceImpl implements NotificationService {
         if (repository.existsById(email)) {
             repository.deleteById(email);
         }
-    }
-
-    private static Settings createDefault(String email) {
-        return Settings.builder()
-                .customerEmail(email)
-                .notifyBeforeHours(24)
-                .notifyNewEvents(true)
-                .notifyUpcoming(true)
-                .build();
     }
 }

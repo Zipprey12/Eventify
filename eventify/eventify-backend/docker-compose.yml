@@ -12,7 +12,7 @@ services:
     volumes:
       - auth_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d auth_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d auth_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,15 +42,27 @@ services:
       POSTGRES_DB: event_db
       POSTGRES_USER: ${EVENT_POSTGRES_USER}
       POSTGRES_PASSWORD: ${EVENT_POSTGRES_PASSWORD}
-
     ports:
       - "5434:5432"
     volumes:
       - event_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${EVENT_POSTGRES_USER} -d event_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ${EVENT_POSTGRES_USER} -d event_db" ]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  event-redis:
+    image: redis:7-alpine
+    container_name: event-redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - event_redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   event-service:
@@ -67,10 +79,16 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       BOOKING_INTERNAL_API_KEY: ${BOOKING_INTERNAL_API_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_HOST: event-redis
+      REDIS_PORT: 6379
     ports:
       - "8082:8082"
     depends_on:
       event-postgres:
+        condition: service_healthy
+      event-redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
   booking-postgres:
@@ -85,9 +103,22 @@ services:
     volumes:
       - booking_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${BOOKING_POSTGRES_USER} -d booking_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ${BOOKING_POSTGRES_USER} -d booking_db" ]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  booking-redis:
+    image: redis:7-alpine
+    container_name: booking-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - booking_redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   booking-service:
@@ -103,10 +134,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${BOOKING_POSTGRES_PASSWORD}
       BOOKING_INTERNAL_API_KEY: ${BOOKING_INTERNAL_API_KEY}
       JWT_SECRET: ${JWT_SECRET}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_HOST: booking-redis
+      REDIS_PORT: 6379
     ports:
       - "8083:8083"
     depends_on:
       booking-postgres:
+        condition: service_healthy
+      booking-redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
   notification-postgres:
@@ -121,9 +159,22 @@ services:
     volumes:
       - notification_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${NOTIFICATION_POSTGRES_USER} -d notification_db"]
+      test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATION_POSTGRES_USER} -d notification_db" ]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  notification-redis:
+    image: redis:7-alpine
+    container_name: notification-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - notification_redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   notification-service:
@@ -139,10 +190,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_HOST: notification-redis
+      REDIS_PORT: 6379
     ports:
       - "8084:8084"
     depends_on:
       notification-postgres:
+        condition: service_healthy
+      notification-redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
   nginx:
@@ -162,7 +219,7 @@ services:
     image: busybox
     volumes:
       - kafka_data:/tmp/kafka-logs
-    command: ["sh", "-c", "chown -R 1000:1000 /tmp/kafka-logs"]
+    command: [ "sh", "-c", "chown -R 1000:1000 /tmp/kafka-logs" ]
 
   kafka:
     image: apache/kafka:3.9.0
@@ -191,9 +248,24 @@ services:
       timeout: 10s
       retries: 5
 
+  kafbat-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafbat-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: eventify-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
 volumes:
   auth_postgres_data:
   event_postgres_data:
   booking_postgres_data:
   notification_postgres_data:
   kafka_data:
+  notification_redis_data:
+  booking_redis_data:
+  event_redis_data:

@@ -5,7 +5,6 @@ import reactor.core.publisher.Mono;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface EventsServiceCaller {
 

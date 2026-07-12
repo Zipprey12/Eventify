@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":event-api"))
     implementation(project(":service-security"))
+    implementation(project(":kafka-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -17,10 +18,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
+
+    implementation("org.springframework.kafka:spring-kafka")
 
     compileOnly("org.projectlombok:lombok")
 

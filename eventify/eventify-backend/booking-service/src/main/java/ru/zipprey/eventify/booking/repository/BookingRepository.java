@@ -23,4 +23,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findAllFiltered(@Param("eventId") Long eventId,
                                   @Param("unconfirmedOnly") boolean unconfirmedOnly,
                                   Pageable pageable);
+
+    //todo сделать ограничение по количеству
+    List<Booking> findAllByEventIdAndConfirmedTrueOrderByCreatedAtDesc(Long eventId);
 }

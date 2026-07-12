@@ -8,6 +8,12 @@ spring:
     url: jdbc:postgresql://localhost:5435/booking_db
     username: postgres
     password: postgres
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 jwt:
   secret: ${JWT_SECRET}

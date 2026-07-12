@@ -1,5 +1,3 @@
-
-
 services:
   # 1. Фронтенд в Docker с моками (демонстрация)
   frontend-mocks:
@@ -11,7 +9,7 @@ services:
     profiles:
       - docker-mocks
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -28,7 +26,7 @@ services:
     profiles:
       - docker-backend
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

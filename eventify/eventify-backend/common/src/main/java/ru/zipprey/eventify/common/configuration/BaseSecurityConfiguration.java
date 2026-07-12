@@ -19,7 +19,7 @@ public abstract class BaseSecurityConfiguration {
         return configureCommon(http).build();
     }
 
-    protected HttpSecurity configureCommon(HttpSecurity httpSecurity){
+    protected HttpSecurity configureCommon(HttpSecurity httpSecurity) {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(STATELESS))

@@ -12,7 +12,7 @@ public class NotificationExceptionHandler {
 
     @ExceptionHandler(SettingsNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleSettingsNotFoundException(SettingsNotFoundException e){
+    public ErrorResponse handleSettingsNotFoundException(SettingsNotFoundException e) {
         return new ErrorResponse("NOTIFICATION_SETTINGS_NOT_FOUND", Level.ERROR, e.getMessage(), null);
     }
 

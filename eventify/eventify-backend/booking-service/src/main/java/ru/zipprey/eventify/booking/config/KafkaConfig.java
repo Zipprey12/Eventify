@@ -1,5 +1,4 @@
-package ru.zipprey.eventify.notification.configuration;
-
+package ru.zipprey.eventify.booking.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -7,20 +6,32 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import ru.zipprey.eventify.kafka.factory.KafkaConsumerFactories;
+import ru.zipprey.eventify.kafka.factory.KafkaProducerFactories;
 
-@Configuration
 @EnableKafka
+@Configuration
 public class KafkaConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
+    @Bean
+    public ProducerFactory<String, Object> producerFactory(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
+        return KafkaProducerFactories.defaultProducerFactory(bootstrapServers);
+    }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    public ConsumerFactory<String, Object> consumerFactory(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
         return KafkaConsumerFactories.defaultConsumerFactory(
                 bootstrapServers,
-                "notification-service",
+                "booking-service-event-overbooked",
                 "ru.zipprey.eventify.kafka.event");
     }
 

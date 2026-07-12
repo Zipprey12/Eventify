@@ -25,4 +25,6 @@ public interface EventService {
     void bookTickets(Long id, int count);
 
     void freeUpPlaces(Long id, int count);
+
+    void addTotalTickets(Long id, int count);
 }

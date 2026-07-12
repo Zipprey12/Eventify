@@ -3,6 +3,7 @@ package ru.zipprey.eventify.kafka.factory;
 import lombok.experimental.UtilityClass;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
@@ -30,5 +31,13 @@ public class KafkaConsumerFactories {
                 new StringDeserializer(),
                 new ErrorHandlingDeserializer<>(jsonDeserializer)
         );
+    }
+
+    public static ConcurrentKafkaListenerContainerFactory<String, Object> defaultListenerContainerFactory(
+            ConsumerFactory<String, Object> consumerFactory) {
+
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, Object>();
+        factory.setConsumerFactory(consumerFactory);
+        return factory;
     }
 }

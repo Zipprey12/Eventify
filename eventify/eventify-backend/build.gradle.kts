@@ -1,29 +1,29 @@
-plugins{
+plugins {
     java
     id("org.springframework.boot") version "4.1.0" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
 }
 
-allprojects{
+allprojects {
     group = "ru.zipprey"
     version = "0.0.1-SNAPSHOT"
 
-    repositories{
+    repositories {
         mavenCentral()
     }
 }
 
-subprojects{
+subprojects {
     apply(plugin = "java")
     apply(plugin = "io.spring.dependency-management")
 
-    java{
-        toolchain{
+    java {
+        toolchain {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
-    tasks.withType<Test>{
+    tasks.withType<Test> {
         useJUnitPlatform()
     }
 }

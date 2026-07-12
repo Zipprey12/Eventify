@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 public enum Topics {
 
     CREATED("event.created"),
-    DATE_CHANGED("event.date-changed");
+    DATE_CHANGED("event.date-changed"),
+    OVERBOOKED("event.overbooked"),
+    BOOKINGS_FORCED_CANCELED("bookings.forced-canceled");
 
     private final String topic;
 }

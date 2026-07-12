@@ -3,11 +3,10 @@ package ru.zipprey.eventify.event.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
-import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
 import ru.zipprey.eventify.event.model.dto.request.EventRequest;
 import ru.zipprey.eventify.event.model.entity.Event;
 import ru.zipprey.eventify.eventapi.model.EventDto;
+import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
 
 @Mapper(componentModel = "spring")
 public interface EventMapper {
@@ -32,8 +31,4 @@ public interface EventMapper {
     @Mapping(source = "id", target = "eventId")
     @Mapping(source = "date", target = "dateTime")
     EventCreatedMessage toCreateMessage(Event event);
-
-    @Mapping(source = "id", target = "eventId")
-    @Mapping(source = "date", target = "newDateTime")
-    EventDateChangedMessage toDateChangedMessage(Event event);
 }

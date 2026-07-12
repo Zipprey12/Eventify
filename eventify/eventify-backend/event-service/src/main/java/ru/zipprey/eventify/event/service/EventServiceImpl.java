@@ -5,18 +5,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.zipprey.eventify.event.exception.CapacityReductionException;
 import ru.zipprey.eventify.event.mapper.EventMapper;
-import ru.zipprey.eventify.event.messaging.EventMessageProducer;
+import ru.zipprey.eventify.event.messaging.production.EventMessageProducer;
 import ru.zipprey.eventify.event.model.dto.request.EventRequest;
+import ru.zipprey.eventify.event.model.entity.Event;
 import ru.zipprey.eventify.event.repository.EventRepository;
 import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
 import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
+import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
+import ru.zipprey.eventify.kafka.event.EventOverbookedMessage;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -68,23 +71,30 @@ public class EventServiceImpl implements EventService {
         var previousDate = existing.getDate();
         mapper.updateEntity(request, existing);
 
-        if (request.getTotalTickets() != null
-                && !Objects.equals(request.getTotalTickets(), existing.getTotalTickets())) {
+        var requestTotalTickets = request.getTotalTickets();
+        var existingTotalTickets = existing.getTotalTickets();
 
-            var booked = existing.getTotalTickets() - existing.getAvailableTickets();
-            if (booked > request.getTotalTickets()) {
-                // TODO: обращение к bookingService для отката последних броней. Временно выбрасывается исключение
-                throw new CapacityReductionException(booked);
+        Integer deficit = null;
+        if (requestTotalTickets != null
+                && !Objects.equals(requestTotalTickets, existingTotalTickets)) {
+
+            var booked = existingTotalTickets - existing.getAvailableTickets();
+            if (booked > requestTotalTickets) {
+                deficit = booked - requestTotalTickets;
+                existing.setAvailableTickets(0);
+            } else {
+                var diff = requestTotalTickets - existingTotalTickets;
+                existing.setAvailableTickets(existing.getAvailableTickets() + diff);
             }
-
-            var diff = request.getTotalTickets() - existing.getTotalTickets();
-            existing.setTotalTickets(request.getTotalTickets());
-            existing.setAvailableTickets(existing.getAvailableTickets() + diff);
+            existing.setTotalTickets(requestTotalTickets);
         }
 
         var saved = repository.save(existing);
-        if(!previousDate.equals(existing.getDate())){
-            producer.publish(mapper.toDateChangedMessage(saved));
+        if (!previousDate.equals(saved.getDate())) {
+            producer.publish(new EventDateChangedMessage(saved.getId(), saved.getDate()));
+        }
+        if (deficit != null) {
+            resolveTicketsDeficit(saved, deficit);
         }
         return mapper.toDto(saved);
     }
@@ -107,7 +117,6 @@ public class EventServiceImpl implements EventService {
         }
 
         event.setAvailableTickets(event.getAvailableTickets() - count);
-        log.info("{} {}", event.getAvailableTickets(), event);
         repository.save(event);
     }
 
@@ -118,5 +127,20 @@ public class EventServiceImpl implements EventService {
 
         event.setAvailableTickets(event.getAvailableTickets() + count);
         repository.save(event);
+    }
+
+    @Override
+    public void addTotalTickets(Long id, int count) {
+        var event = repository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException(id));
+
+        event.setTotalTickets(event.getTotalTickets() + count);
+        repository.save(event);
+    }
+
+    private void resolveTicketsDeficit(Event event, int deficit) {
+        producer.publish(new EventOverbookedMessage(
+                UUID.randomUUID(), event.getId(), deficit
+        ));
     }
 }

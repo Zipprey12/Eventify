@@ -24,13 +24,13 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingResponse> getAll(Authentication authentication){
+    public List<BookingResponse> getAll(Authentication authentication) {
         return service.getAll(authentication);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookingResponse create(@RequestBody CreateBookingRequest request, Authentication authentication){
+    public BookingResponse create(@RequestBody CreateBookingRequest request, Authentication authentication) {
         return service.create(request, authentication);
     }
 
@@ -41,7 +41,7 @@ public class BookingController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long id, Authentication authentication){
+    public void deleteById(@PathVariable Long id, Authentication authentication) {
         service.delete(id, authentication);
     }
 }

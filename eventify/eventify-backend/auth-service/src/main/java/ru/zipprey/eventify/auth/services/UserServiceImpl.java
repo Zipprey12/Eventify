@@ -13,7 +13,7 @@ import ru.zipprey.eventify.auth.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserDto register(RegisterRequest request) {
         String requestEmail = request.getEmail();
-        if(userRepository.findByEmail(requestEmail).isPresent()){
+        if (userRepository.findByEmail(requestEmail).isPresent()) {
             throw new UserAlreadyExistException(requestEmail);
         }
 
