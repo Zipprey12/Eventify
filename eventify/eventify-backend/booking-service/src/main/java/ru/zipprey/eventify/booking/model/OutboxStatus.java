@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.booking.model.outbox;
+package ru.zipprey.eventify.booking.model;
 
 public enum OutboxStatus {
     PENDING_ENRICHMENT,

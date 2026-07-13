@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingConfirmedPayload;
 import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingDeletedPayload;
-import ru.zipprey.eventify.booking.model.outbox.OutboxEvent;
+import ru.zipprey.eventify.booking.model.entity.OutboxEvent;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
 import ru.zipprey.eventify.eventapi.model.EventDto;

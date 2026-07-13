@@ -11,7 +11,7 @@ import ru.zipprey.eventify.booking.model.dto.BookingResponse;
 import ru.zipprey.eventify.booking.model.dto.request.CreateBookingRequest;
 import ru.zipprey.eventify.booking.model.dto.request.UpdateBookingRequest;
 import ru.zipprey.eventify.booking.model.entity.Booking;
-import ru.zipprey.eventify.booking.model.outbox.OutboxStatus;
+import ru.zipprey.eventify.booking.model.OutboxStatus;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.booking.service.outbox.OutboxDataService;

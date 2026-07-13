@@ -1,8 +1,9 @@
-package ru.zipprey.eventify.booking.model.outbox;
+package ru.zipprey.eventify.booking.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import ru.zipprey.eventify.booking.model.OutboxStatus;
 
 import java.time.Instant;
 
@@ -14,9 +15,6 @@ import java.time.Instant;
 @AllArgsConstructor
 @Table(name = "outbox_events")
 public class OutboxEvent {
-
-    @Column(name = "payload_type", nullable = false)
-    private String payloadType;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +28,9 @@ public class OutboxEvent {
 
     @Column(nullable = false, columnDefinition = "text")
     private String payload;
+
+    @Column(name = "payload_type", nullable = false)
+    private String payloadType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

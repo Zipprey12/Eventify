@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.zipprey.eventify.booking.model.outbox.OutboxEvent;
-import ru.zipprey.eventify.booking.model.outbox.OutboxStatus;
+import ru.zipprey.eventify.booking.model.entity.OutboxEvent;
+import ru.zipprey.eventify.booking.model.OutboxStatus;
 import ru.zipprey.eventify.booking.repository.OutboxEventRepository;
 
 import java.time.Instant;

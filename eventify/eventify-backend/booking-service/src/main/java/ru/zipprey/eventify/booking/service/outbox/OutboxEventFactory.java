@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingDeletedPayload;
 import ru.zipprey.eventify.booking.model.entity.Booking;
-import ru.zipprey.eventify.booking.model.outbox.OutboxEvent;
-import ru.zipprey.eventify.booking.model.outbox.OutboxStatus;
+import ru.zipprey.eventify.booking.model.entity.OutboxEvent;
+import ru.zipprey.eventify.booking.model.OutboxStatus;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
