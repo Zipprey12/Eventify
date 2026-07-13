@@ -32,7 +32,8 @@ public class KafkaConfig {
         return KafkaConsumerFactories.defaultConsumerFactory(
                 bootstrapServers,
                 "event-service",
-                "ru.zipprey.eventify.kafka.booking");
+                "ru.zipprey.eventify.kafka.booking",
+                "ru.zipprey.eventify.kafka.event");
     }
 
     @Bean

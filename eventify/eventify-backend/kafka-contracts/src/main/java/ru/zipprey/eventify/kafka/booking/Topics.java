@@ -7,9 +7,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Topics {
 
-    CANCELED("booking.canceled"),
+    DELETED("booking.canceled"),
     FORCE_CANCELED("booking.force-canceled"),
-    FORCE_CANCELED_ERROR("booking.force-cancellation-error");
+    FORCE_CANCELED_ERROR("booking.force-cancellation-error"),
+    DELETED_BY_ADMIN("booking.deleted-by-admin"),
+    CONFIRMED("booking.confirmed"),
+    BOOK_TICKETS("booking.book-tickets");
 
     private final String topic;
 

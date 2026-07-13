@@ -22,9 +22,9 @@ public interface EventService {
 
     void delete(long id);
 
-    void bookTickets(Long id, int count);
+    EventDto bookTickets(Long id, int count);
 
-    void freeUpPlaces(Long id, int count);
+    EventDto freeUpPlaces(Long id, int count);
 
     void addTotalTickets(Long id, int count);
 }

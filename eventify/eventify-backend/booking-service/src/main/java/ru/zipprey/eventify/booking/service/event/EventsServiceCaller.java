@@ -12,7 +12,7 @@ public interface EventsServiceCaller {
 
     Flux<EventDto> findByIds(List<Long> ids);
 
-    Mono<Void> bookTickets(long eventId, int count);
+    Mono<EventDto> bookTickets(long eventId, int count);
 
-    Mono<Void> freeUpPlaces(long eventId, int count);
+    Mono<EventDto> freeUpPlaces(long eventId, int count);
 }

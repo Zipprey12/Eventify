@@ -5,6 +5,7 @@ import java.util.UUID;
 public record EventOverbookedMessage(
         UUID operationId,
         Long eventId,
-        Integer difference
+        Integer difference,
+        String eventTitle
 ) {
 }

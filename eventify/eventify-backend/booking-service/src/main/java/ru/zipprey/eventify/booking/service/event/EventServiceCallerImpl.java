@@ -46,7 +46,7 @@ public class EventServiceCallerImpl implements EventsServiceCaller {
     }
 
     @Override
-    public Mono<Void> bookTickets(long eventId, int count) {
+    public Mono<EventDto> bookTickets(long eventId, int count) {
         var spec = webClient.put()
                 .uri(uriBuilder -> uriBuilder.path("/events/{id}/book")
                         .queryParam("count", count)
@@ -56,12 +56,11 @@ public class EventServiceCallerImpl implements EventsServiceCaller {
         return addDefaultHandlers(eventId, spec)
                 .onStatus(status -> status.value() == 409,
                         response -> Mono.error(new NotEnoughTicketsException(String.valueOf(eventId), 0)))
-                .toBodilessEntity()
-                .then();
+                .bodyToMono(EventDto.class);
     }
 
     @Override
-    public Mono<Void> freeUpPlaces(long eventId, int count) {
+    public Mono<EventDto> freeUpPlaces(long eventId, int count) {
         var spec = webClient.put()
                 .uri(uriBuilder -> uriBuilder.path("/events/{id}/free")
                         .queryParam("count", count)
@@ -69,8 +68,7 @@ public class EventServiceCallerImpl implements EventsServiceCaller {
                 .retrieve();
 
         return addDefaultHandlers(eventId, spec)
-                .toBodilessEntity()
-                .then();
+                .bodyToMono(EventDto.class);
     }
 
     private WebClient.ResponseSpec addDefaultHandlers(long eventId, WebClient.ResponseSpec responseSpec) {

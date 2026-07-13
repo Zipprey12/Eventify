@@ -108,7 +108,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void bookTickets(Long id, int count) {
+    public EventDto bookTickets(Long id, int count) {
         var event = repository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
@@ -118,15 +118,17 @@ public class EventServiceImpl implements EventService {
 
         event.setAvailableTickets(event.getAvailableTickets() - count);
         repository.save(event);
+        return mapper.toDto(event);
     }
 
     @Override
-    public void freeUpPlaces(Long id, int count) {
+    public EventDto freeUpPlaces(Long id, int count) {
         var event = repository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
         event.setAvailableTickets(event.getAvailableTickets() + count);
         repository.save(event);
+        return mapper.toDto(event);
     }
 
     @Override
@@ -140,7 +142,7 @@ public class EventServiceImpl implements EventService {
 
     private void resolveTicketsDeficit(Event event, int deficit) {
         producer.publish(new EventOverbookedMessage(
-                UUID.randomUUID(), event.getId(), deficit
+                UUID.randomUUID(), event.getId(), deficit, event.getTitle()
         ));
     }
 }

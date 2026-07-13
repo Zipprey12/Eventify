@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.booking.messaging.consumption.deduplicate.KafkaDeduplicateService;
-import ru.zipprey.eventify.booking.messaging.production.BookingMessageProducer;
+import ru.zipprey.eventify.booking.messaging.production.MessageProducer;
 import ru.zipprey.eventify.booking.model.entity.Booking;
 import ru.zipprey.eventify.booking.service.booking.cancellation.BookingCancellationService;
 import ru.zipprey.eventify.kafka.booking.BookingsCanceledMessage;
@@ -25,7 +25,7 @@ public class EventMessageConsumer {
 
     private final KafkaDeduplicateService deduplicateService;
     private final BookingCancellationService cancellationService;
-    private final BookingMessageProducer producer;
+    private final MessageProducer producer;
 
     @KafkaListener(topics = EVENT_OVERBOOKED, groupId = "booking-service-event-overbooked")
     public void handle(EventOverbookedMessage message) {
@@ -48,7 +48,8 @@ public class EventMessageConsumer {
                             message.operationId(),
                             message.difference(),
                             canceled.totalCount(),
-                            mapped
+                            mapped,
+                            message.eventTitle()
                     ));
         } else {
             var errorMessage = new CancellationFailedMessage(

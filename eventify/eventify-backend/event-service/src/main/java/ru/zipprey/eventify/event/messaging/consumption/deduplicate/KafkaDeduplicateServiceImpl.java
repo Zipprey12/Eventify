@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,9 +15,9 @@ public class KafkaDeduplicateServiceImpl implements KafkaDeduplicateService {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public boolean isDuplicate(String topic, UUID operationId) {
-        var key = "dedup:" + topic + ":" + operationId;
-        var isNew = redisTemplate.opsForValue().setIfAbsent(key, "1", DEDUP_TTL);
+    public boolean isDuplicate(String topic, Object key) {
+        var redisKey = "dedup:" + topic + ":" + key;
+        var isNew = redisTemplate.opsForValue().setIfAbsent(redisKey, "1", DEDUP_TTL);
         return Boolean.FALSE.equals(isNew);
     }
 }

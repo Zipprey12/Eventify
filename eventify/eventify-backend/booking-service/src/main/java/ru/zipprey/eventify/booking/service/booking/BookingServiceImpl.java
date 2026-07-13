@@ -3,6 +3,7 @@ package ru.zipprey.eventify.booking.service.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.booking.exception.BookingAccessDeniedException;
 import ru.zipprey.eventify.booking.exception.BookingNotFoundException;
 import ru.zipprey.eventify.booking.mapper.BookingMapper;
@@ -10,8 +11,11 @@ import ru.zipprey.eventify.booking.model.dto.BookingResponse;
 import ru.zipprey.eventify.booking.model.dto.request.CreateBookingRequest;
 import ru.zipprey.eventify.booking.model.dto.request.UpdateBookingRequest;
 import ru.zipprey.eventify.booking.model.entity.Booking;
+import ru.zipprey.eventify.booking.model.outbox.OutboxStatus;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
+import ru.zipprey.eventify.booking.service.outbox.OutboxDataService;
+import ru.zipprey.eventify.booking.service.outbox.OutboxEventFactory;
 import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
@@ -19,6 +23,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.function.Function;
+
+import static ru.zipprey.eventify.kafka.booking.Topics.DELETED;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,8 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
     private final BookingMapper mapper;
     private final EventsServiceCaller eventsCaller;
+    private final OutboxEventFactory eventFactory;
+    private final OutboxDataService outboxDataService;
 
     @Override
     public BookingResponse getById(long id, Authentication authentication) {
@@ -65,17 +73,18 @@ public class BookingServiceImpl implements BookingService {
         return fillEvent(saved, event);
     }
 
+    @Transactional
     @Override
     public void delete(long id, Authentication authentication) {
         var found = findById(id, authentication);
 
-        if (found.getConfirmed()) {
-            var eventId = found.getEventId();
-            var count = found.getTicketsCount();
-
-            eventsCaller.freeUpPlaces(eventId, count).block();
-        }
         repository.deleteById(id);
+        var event = eventFactory.createDelete(
+                DELETED.getTopic(),
+                found,
+                OutboxStatus.PENDING_ENRICHMENT
+        );
+        outboxDataService.addUnprocessed(event);
     }
 
     private String getEmailKey(Authentication authentication) {

@@ -20,13 +20,13 @@ public class InternalEventController {
     }
 
     @PutMapping("/{id}/book")
-    public void bookTickets(@PathVariable Long id, @RequestParam int count) {
-        eventService.bookTickets(id, count);
+    public EventDto bookTickets(@PathVariable Long id, @RequestParam int count) {
+        return eventService.bookTickets(id, count);
     }
 
     @PutMapping("/{id}/free")
-    public void freeUpPlaces(@PathVariable Long id, @RequestParam int count) {
-        eventService.freeUpPlaces(id, count);
+    public EventDto freeUpPlaces(@PathVariable Long id, @RequestParam int count) {
+        return eventService.freeUpPlaces(id, count);
     }
 
 }

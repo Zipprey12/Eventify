@@ -8,6 +8,7 @@ public record BookingsCanceledMessage(
         UUID operationId,
         Integer requiredTickets,
         Integer freedTickets,
-        List<CanceledBookingEntry> bookings
+        List<CanceledBookingEntry> bookings,
+        String eventTitle
 ) {
 }
