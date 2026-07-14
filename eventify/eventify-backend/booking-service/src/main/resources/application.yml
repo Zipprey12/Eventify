@@ -24,3 +24,7 @@ internal:
 
 event-service:
   base-url: http://event-service:8082
+
+booking:
+  expiry-batch-size: 50
+  expiry-fallback-delay: 43200000

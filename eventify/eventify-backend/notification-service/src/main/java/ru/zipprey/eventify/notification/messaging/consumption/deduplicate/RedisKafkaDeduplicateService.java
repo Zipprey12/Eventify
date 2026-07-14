@@ -11,7 +11,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisKafkaDeduplicationService implements KafkaDeduplicationService {
+public class RedisKafkaDeduplicateService implements KafkaDeduplicateService {
 
     private static final Duration DEDUP_TTL = Duration.ofMinutes(30);
 

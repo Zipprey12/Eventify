@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import ru.zipprey.eventify.kafka.booking.BookingsCascadeCanceledMessage;
 import ru.zipprey.eventify.kafka.booking.BookingsOutcompetedMessage;
 import ru.zipprey.eventify.kafka.booking.CanceledBookingEntry;
 import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
 import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
-import ru.zipprey.eventify.notification.messaging.consumption.deduplicate.KafkaDeduplicationService;
+import ru.zipprey.eventify.notification.messaging.consumption.deduplicate.KafkaDeduplicateService;
 
 import java.util.stream.Collectors;
 
@@ -21,10 +22,11 @@ public class EventMessageConsumer {
     private static final String EVENT_DATE_CHANGED = "event.date-changed";
     private static final String BOOKING_FORCE_CANCELED = "booking.force-canceled";
     private static final String BOOKING_FORCE_CANCELLATION_ERROR = "booking.force-cancellation-error";
+    private static final String BOOKING_CASCADE_CANCELED = "booking.canceled-cascade";
 
     private static final String DUPLICATE_LOG = "Дубль {}: eventId={}, пропуск операции";
 
-    private final KafkaDeduplicationService service;
+    private final KafkaDeduplicateService service;
 
     @KafkaListener(topics = EVENT_CREATED, groupId = "notification-service-event-created")
     public void handle(EventCreatedMessage message) {
@@ -60,6 +62,18 @@ public class EventMessageConsumer {
 
         notifyTelegram(message);
         notifyEmail(message);
+    }
+
+    @KafkaListener(topics = BOOKING_CASCADE_CANCELED, groupId = "notification-service-booking-cascade-canceled")
+    public void handleBookingCascadeCanceled(BookingsCascadeCanceledMessage message) {
+        logMessage(BOOKING_CASCADE_CANCELED, message);
+
+        var eventId = message.eventId();
+        if (service.isDuplicate(BOOKING_CASCADE_CANCELED, eventId)) {
+            logDuplicate(BOOKING_CASCADE_CANCELED, eventId);
+            return;
+        }
+        //TODO: отправка
     }
 
     private void logMessage(String topic, Object message) {

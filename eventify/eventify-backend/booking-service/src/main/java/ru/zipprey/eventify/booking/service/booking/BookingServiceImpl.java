@@ -12,6 +12,7 @@ import ru.zipprey.eventify.booking.model.dto.request.CreateBookingRequest;
 import ru.zipprey.eventify.booking.model.dto.request.UpdateBookingRequest;
 import ru.zipprey.eventify.booking.model.entity.Booking;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
+import ru.zipprey.eventify.booking.service.booking.expiration.ExpiryQueueService;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
@@ -32,11 +33,13 @@ import static ru.zipprey.eventify.kafka.booking.Topics.DELETED;
 public class BookingServiceImpl implements BookingService {
 
     public static final Duration BOOKING_CONFIRMATION_DURATION = Duration.ofDays(2);
+
     private final BookingRepository repository;
     private final BookingMapper mapper;
     private final EventsServiceCaller eventsCaller;
     private final OutboxEventFactory eventFactory;
     private final OutboxDataService outboxDataService;
+    private final ExpiryQueueService expiryQueueService;
 
     @Override
     public BookingResponse getById(long id, Authentication authentication) {
@@ -71,6 +74,8 @@ public class BookingServiceImpl implements BookingService {
         entity.setExpiryTime(Instant.now().plus(BOOKING_CONFIRMATION_DURATION));
 
         var saved = repository.save(entity);
+        expiryQueueService.schedule(saved.getId(), saved.getExpiryTime());
+
         return fillEvent(saved, event);
     }
 
@@ -80,6 +85,8 @@ public class BookingServiceImpl implements BookingService {
         var found = findById(id, authentication);
 
         repository.deleteById(id);
+        expiryQueueService.remove(id);
+
         var payload = new BookingDeletedMessage(
                 found.getEventId(),
                 found.getId(),

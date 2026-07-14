@@ -11,6 +11,7 @@ import ru.zipprey.eventify.booking.mapper.BookingMapper;
 import ru.zipprey.eventify.booking.model.dto.BookingResponse;
 import ru.zipprey.eventify.booking.model.entity.Booking;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
+import ru.zipprey.eventify.booking.service.booking.expiration.ExpiryQueueService;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 import ru.zipprey.eventify.kafka.booking.BookTicketsMessage;
@@ -36,6 +37,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     private final EventsServiceCaller caller;
     private final OutboxDataService outboxDataService;
     private final OutboxEventFactory eventFactory;
+    private final ExpiryQueueService queueService;
 
     //todo написать сервис с redis, который будет автоматически отменять просроченные заявки
     @Override
@@ -45,6 +47,8 @@ public class AdminBookingServiceImpl implements AdminBookingService {
 
         existed.setConfirmed(true);
         repository.save(existed);
+        queueService.remove(existed.getId());
+
         var bookTicketsEvent = eventFactory.create(
                 BOOK_TICKETS.getTopic(),
                 String.valueOf(existed.getId()),
@@ -97,6 +101,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
         repository.deleteById(bookingId);
+        queueService.remove(bookingId);
 
         var payload = new BookingDeletedByAdminMessage(
                 found.getId(),
@@ -119,7 +124,11 @@ public class AdminBookingServiceImpl implements AdminBookingService {
 
     @Override
     public List<Booking> cancelAllRelatedEvent(long eventId) {
-        return repository.deleteAllByEventId(eventId);
+        var deleted = repository.deleteAllByEventId(eventId);
+        queueService.removeAll(deleted.stream()
+                .map(Booking::getId)
+                .toList());
+        return deleted;
     }
 
     private Booking validateAndGetBooking(long id) {
