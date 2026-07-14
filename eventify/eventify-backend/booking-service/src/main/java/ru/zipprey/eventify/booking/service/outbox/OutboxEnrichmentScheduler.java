@@ -5,18 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingConfirmedPayload;
-import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingDeletedPayload;
-import ru.zipprey.eventify.booking.model.entity.OutboxEvent;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
 import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.kafka.booking.BookingDeletedByAdminMessage;
 import ru.zipprey.eventify.kafka.booking.BookingDeletedMessage;
+import ru.zipprey.eventify.outbox.entity.OutboxEvent;
+import ru.zipprey.eventify.outbox.service.OutboxDataService;
+import ru.zipprey.eventify.outbox.service.OutboxTypeRegistry;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.BiFunction;
+import java.util.function.ToLongFunction;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class OutboxEnrichmentScheduler {
     private final OutboxDataService outboxDataService;
     private final EventsServiceCaller caller;
     private final ObjectMapper objectMapper;
+    private final OutboxTypeRegistry typeRegistry;
 
     @Async
     @Scheduled(fixedDelay = 5000)
@@ -53,12 +55,12 @@ public class OutboxEnrichmentScheduler {
             case CONFIRMED -> enrichConfirmedMessage(event);
             case DELETED_BY_ADMIN -> enrichDeletedByAdminMessage(event);
             case CANCELED -> enrichDeletedMessage(event);
-            default -> log.warn("Неизвестный топик для обогащения: {}", event.getTopic());
+            default -> log.warn("Неизвестный топик для заполнения: {}", event.getTopic());
         }
     }
 
     private void enrichConfirmedMessage(OutboxEvent event) {
-        enrich(event, OutboxBookingConfirmedPayload.class,
+        enrich(event, BookingConfirmedMessage.class, BookingConfirmedMessage::eventId,
                 (p, e) -> new BookingConfirmedMessage(
                         p.bookingId(),
                         p.eventId(),
@@ -69,7 +71,7 @@ public class OutboxEnrichmentScheduler {
     }
 
     private void enrichDeletedByAdminMessage(OutboxEvent event) {
-        enrich(event, OutboxBookingDeletedPayload.class,
+        enrich(event, BookingDeletedByAdminMessage.class, BookingDeletedByAdminMessage::eventId,
                 (p, e) -> new BookingDeletedByAdminMessage(
                         p.bookingId(),
                         p.eventId(),
@@ -81,7 +83,7 @@ public class OutboxEnrichmentScheduler {
     }
 
     private void enrichDeletedMessage(OutboxEvent event) {
-        enrich(event, OutboxBookingDeletedPayload.class,
+        enrich(event, BookingDeletedMessage.class, BookingDeletedMessage::eventId,
                 (p, e) -> new BookingDeletedMessage(
                         p.eventId(),
                         p.bookingId(),
@@ -93,23 +95,27 @@ public class OutboxEnrichmentScheduler {
         );
     }
 
-    private <P extends OutboxPayload> void enrich(
+    private <P> void enrich(
             OutboxEvent event,
             Class<P> payloadClass,
+            ToLongFunction<P> eventIdExtractor,
             BiFunction<P, EventDto, Object> enricher) {
 
         var payload = objectMapper.readValue(event.getPayload(), payloadClass);
-        var eventDto = find(payload.eventId(), event);
+        var eventDto = find(eventIdExtractor.applyAsLong(payload), event);
         if (eventDto == null) return;
 
         var enriched = enricher.apply(payload, eventDto);
         logEnrich(event.getTopic());
 
-        outboxDataService.markReady(
+        var applied = outboxDataService.markReady(
                 event,
                 objectMapper.writeValueAsString(enriched),
-                enriched.getClass().getName()
+                typeRegistry.aliasFor(enriched.getClass())
         );
+        if (!applied) {
+            log.debug("Событие id={} уже обработано, пропуск.", event.getId());
+        }
     }
 
     private EventDto find(Long eventId, OutboxEvent event) {

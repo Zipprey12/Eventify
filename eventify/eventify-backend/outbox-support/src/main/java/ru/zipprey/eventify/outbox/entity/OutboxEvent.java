@@ -1,9 +1,9 @@
-package ru.zipprey.eventify.booking.model.entity;
+package ru.zipprey.eventify.outbox.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import ru.zipprey.eventify.booking.model.OutboxStatus;
+import ru.zipprey.eventify.outbox.OutboxStatus;
 
 import java.time.Instant;
 

@@ -40,7 +40,7 @@ public class BookingMessageConsumer {
     }
 
     @KafkaListener(topics = FORCE_CANCELLED, groupId = "event-service-booking-force-canceled")
-    public void handle(BookingsCanceledMessage message) {
+    public void handle(BookingsOutcompetedMessage message) {
         logMessageConsumption(FORCE_CANCELLED);
 
         var operationId = message.operationId();

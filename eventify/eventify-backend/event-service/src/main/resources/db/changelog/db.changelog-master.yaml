@@ -1,4 +1,6 @@
 databaseChangeLog:
+  - include:
+      file: db/changelog/outbox/001-outbox-events.yaml
   - includeAll:
       path: migrations/
       relativeToChangelogFile: true

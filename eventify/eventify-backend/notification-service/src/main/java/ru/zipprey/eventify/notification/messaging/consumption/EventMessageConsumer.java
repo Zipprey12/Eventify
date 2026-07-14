@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import ru.zipprey.eventify.kafka.booking.BookingsCanceledMessage;
+import ru.zipprey.eventify.kafka.booking.BookingsOutcompetedMessage;
 import ru.zipprey.eventify.kafka.booking.CanceledBookingEntry;
 import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
 import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
@@ -49,7 +49,7 @@ public class EventMessageConsumer {
     }
 
     @KafkaListener(topics = BOOKING_FORCE_CANCELED, groupId = "notification-service-booking-force-canceled")
-    public void handleBookingCanceled(BookingsCanceledMessage message) {
+    public void handleBookingCanceled(BookingsOutcompetedMessage message) {
         logMessage(BOOKING_FORCE_CANCELED, message);
 
         var id = message.operationId();
@@ -80,7 +80,7 @@ public class EventMessageConsumer {
         log.info("Отправляю информацию об изменении даты в telegram-service: {}", message);
     }
 
-    private void notifyTelegram(BookingsCanceledMessage message) {
+    private void notifyTelegram(BookingsOutcompetedMessage message) {
         // TODO: отправка через Telegram-бота
         log.info("Отправил информацию в Telegram об отмене брони из-за уменьшения количества мест {}", message);
     }
@@ -95,13 +95,13 @@ public class EventMessageConsumer {
         log.info("Отправляю уведомление об изменении даты по email: {}", message);
     }
 
-    private void notifyEmail(BookingsCanceledMessage message) {
+    private void notifyEmail(BookingsOutcompetedMessage message) {
         // TODO: отправка письма
         log.info("Отправляю уведомление об отмене брони из-за " +
                 "уменьшения количества мест по email: {}", emails(message));
     }
 
-    private String emails(BookingsCanceledMessage message) {
+    private String emails(BookingsOutcompetedMessage message) {
         return message.bookings().stream()
                 .map(CanceledBookingEntry::customerEmail)
                 .collect(Collectors.joining(" "));

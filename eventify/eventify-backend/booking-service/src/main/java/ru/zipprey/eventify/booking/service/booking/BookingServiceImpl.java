@@ -11,13 +11,14 @@ import ru.zipprey.eventify.booking.model.dto.BookingResponse;
 import ru.zipprey.eventify.booking.model.dto.request.CreateBookingRequest;
 import ru.zipprey.eventify.booking.model.dto.request.UpdateBookingRequest;
 import ru.zipprey.eventify.booking.model.entity.Booking;
-import ru.zipprey.eventify.booking.model.OutboxStatus;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
-import ru.zipprey.eventify.booking.service.outbox.OutboxDataService;
-import ru.zipprey.eventify.booking.service.outbox.OutboxEventFactory;
 import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
+import ru.zipprey.eventify.kafka.booking.BookingDeletedMessage;
+import ru.zipprey.eventify.outbox.OutboxStatus;
+import ru.zipprey.eventify.outbox.service.OutboxDataService;
+import ru.zipprey.eventify.outbox.service.OutboxEventFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -79,12 +80,23 @@ public class BookingServiceImpl implements BookingService {
         var found = findById(id, authentication);
 
         repository.deleteById(id);
-        var event = eventFactory.createDelete(
+        var payload = new BookingDeletedMessage(
+                found.getEventId(),
+                found.getId(),
+                found.getCustomerEmail(),
+                null,
+                null,
+                found.getTicketsCount(),
+                found.getConfirmed()
+        );
+
+        var event = eventFactory.create(
                 DELETED.getTopic(),
-                found,
+                String.valueOf(found.getId()),
+                payload,
                 OutboxStatus.PENDING_ENRICHMENT
         );
-        outboxDataService.addUnprocessed(event);
+        outboxDataService.add(event);
     }
 
     private String getEmailKey(Authentication authentication) {
@@ -141,4 +153,3 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 }
-

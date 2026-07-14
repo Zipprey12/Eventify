@@ -9,18 +9,20 @@ import ru.zipprey.eventify.booking.exception.BookingExpiredException;
 import ru.zipprey.eventify.booking.exception.BookingNotFoundException;
 import ru.zipprey.eventify.booking.mapper.BookingMapper;
 import ru.zipprey.eventify.booking.model.dto.BookingResponse;
-import ru.zipprey.eventify.booking.model.dto.outbox.OutboxBookingConfirmedPayload;
 import ru.zipprey.eventify.booking.model.entity.Booking;
-import ru.zipprey.eventify.booking.model.entity.OutboxEvent;
-import ru.zipprey.eventify.booking.model.OutboxStatus;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
-import ru.zipprey.eventify.booking.service.outbox.OutboxDataService;
-import ru.zipprey.eventify.booking.service.outbox.OutboxEventFactory;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 import ru.zipprey.eventify.kafka.booking.BookTicketsMessage;
+import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
+import ru.zipprey.eventify.kafka.booking.BookingDeletedByAdminMessage;
+import ru.zipprey.eventify.outbox.OutboxStatus;
+import ru.zipprey.eventify.outbox.entity.OutboxEvent;
+import ru.zipprey.eventify.outbox.service.OutboxDataService;
+import ru.zipprey.eventify.outbox.service.OutboxEventFactory;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.function.Function;
 
 import static ru.zipprey.eventify.kafka.booking.Topics.*;
@@ -55,10 +57,12 @@ public class AdminBookingServiceImpl implements AdminBookingService {
         var notificationEvent = eventFactory.create(
                 CONFIRMED.getTopic(),
                 String.valueOf(existed.getId()),
-                new OutboxBookingConfirmedPayload(
+                new BookingConfirmedMessage(
                         id,
                         existed.getEventId(),
                         existed.getCustomerEmail(),
+                        null,
+                        null,
                         existed.getTicketsCount()
                 ),
                 OutboxStatus.PENDING_ENRICHMENT
@@ -93,12 +97,29 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
         repository.deleteById(bookingId);
-        var event = eventFactory.createDelete(
+
+        var payload = new BookingDeletedByAdminMessage(
+                found.getId(),
+                found.getEventId(),
+                found.getCustomerEmail(),
+                null,
+                null,
+                found.getTicketsCount(),
+                found.getConfirmed()
+        );
+
+        var event = eventFactory.create(
                 DELETED_BY_ADMIN.getTopic(),
-                found,
+                String.valueOf(found.getId()),
+                payload,
                 OutboxStatus.PENDING_ENRICHMENT
         );
-        outboxDataService.addUnprocessed(event);
+        outboxDataService.add(event);
+    }
+
+    @Override
+    public List<Booking> cancelAllRelatedEvent(long eventId) {
+        return repository.deleteAllByEventId(eventId);
     }
 
     private Booking validateAndGetBooking(long id) {
@@ -114,7 +135,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
 
     private void saveOutboxEvents(OutboxEvent... events) {
         for (OutboxEvent event : events) {
-            outboxDataService.addUnprocessed(event);
+            outboxDataService.add(event);
         }
     }
 }

@@ -26,4 +26,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     //todo сделать ограничение по количеству
     List<Booking> findAllByEventIdAndConfirmedTrueOrderByCreatedAtDesc(Long eventId);
+
+    List<Booking> deleteAllByEventId(long eventId);
 }

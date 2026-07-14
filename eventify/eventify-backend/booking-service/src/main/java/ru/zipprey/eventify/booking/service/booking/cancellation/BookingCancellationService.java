@@ -7,5 +7,4 @@ import java.util.Optional;
 public interface BookingCancellationService {
 
     Optional<BookingsBatch> freeUp(Long eventId, int overbooking);
-
 }

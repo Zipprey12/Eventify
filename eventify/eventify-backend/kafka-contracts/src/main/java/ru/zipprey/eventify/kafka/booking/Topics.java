@@ -12,7 +12,8 @@ public enum Topics {
     FORCE_CANCELED_ERROR("booking.force-cancellation-error"),
     DELETED_BY_ADMIN("booking.deleted-by-admin"),
     CONFIRMED("booking.confirmed"),
-    BOOK_TICKETS("booking.book-tickets");
+    BOOK_TICKETS("booking.book-tickets"),
+    CASCADE_DELETED("booking.canceled-cascade");
 
     private final String topic;
 
