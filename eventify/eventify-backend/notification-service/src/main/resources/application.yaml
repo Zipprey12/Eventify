@@ -28,7 +28,11 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-
+  email:
+    executor:
+      core-pool-size: 4
+      max-pool-size: 16
+      queue-capacity: 200
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000

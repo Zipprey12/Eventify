@@ -1,6 +1,7 @@
 package ru.zipprey.eventify.notification.service.email;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.kafka.booking.BookingDeletedByAdminMessage;
@@ -12,8 +13,10 @@ import ru.zipprey.eventify.notification.messaging.caller.BookingServiceCaller;
 import ru.zipprey.eventify.notification.model.email.EmailMessageDto;
 import ru.zipprey.eventify.notification.repository.SettingsRepository;
 
+
 @Component
 @RequiredArgsConstructor
+@Async("emailTaskExecutor")
 public class EmailService {
 
     private final EmailSender sender;

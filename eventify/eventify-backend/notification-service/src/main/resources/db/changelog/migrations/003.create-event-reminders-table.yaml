@@ -1,0 +1,78 @@
+databaseChangeLog:
+  - changeSet:
+      id: event-reminders-1
+      author: zipprey
+      comment: >
+        Таблица запланированных напоминаний о мероприятиях.
+        notify_before_hours нужен для обновления remind_at в одном 
+        UPDATE без запроса notification_settings
+      changes:
+        - createTable:
+            tableName: event_reminders
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: booking_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_date_time
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tickets_count
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: remind_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: notify_before_hours
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 24
+
+              - column:
+                  name: sent_at
+                  type: timestamptz
+
+        - sql:
+            sql: >
+              CREATE INDEX idx_event_reminders
+              ON event_reminders (remind_at)
+              WHERE sent = false;

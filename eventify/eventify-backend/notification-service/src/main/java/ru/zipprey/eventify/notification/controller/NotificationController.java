@@ -6,14 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.zipprey.eventify.notification.model.dto.SettingsDto;
-import ru.zipprey.eventify.notification.service.NotificationService;
+import ru.zipprey.eventify.notification.service.SettingsService;
 
 @RestController
 @RequestMapping("/user/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationService service;
+    private final SettingsService service;
 
     @GetMapping
     public SettingsDto getSettings(Authentication authentication) {

@@ -4,14 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
-import ru.zipprey.eventify.kafka.booking.BookingDeletedByAdminMessage;
-import ru.zipprey.eventify.kafka.booking.BookingsCascadeCanceledMessage;
-import ru.zipprey.eventify.kafka.booking.BookingsOutcompetedMessage;
+import ru.zipprey.eventify.kafka.booking.*;
 import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
 import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
 import ru.zipprey.eventify.notification.messaging.consumption.deduplicate.KafkaDeduplicateService;
 import ru.zipprey.eventify.notification.service.email.EmailService;
+import ru.zipprey.eventify.notification.service.reminder.EventReminderService;
+
+import java.util.List;
 
 @Component
 @Slf4j
@@ -20,6 +20,7 @@ public class EventMessageConsumer {
 
     private static final String EVENT_CREATED = "event.created";
     private static final String EVENT_DATE_CHANGED = "event.date-changed";
+    private static final String BOOKING_CANCELED = "booking.canceled";
     private static final String BOOKING_FORCE_CANCELED = "booking.force-canceled";
     private static final String BOOKING_CASCADE_CANCELED = "booking.canceled-cascade";
     private static final String BOOKING_CONFIRMED = "booking.confirmed";
@@ -27,15 +28,16 @@ public class EventMessageConsumer {
 
     private static final String DUPLICATE_LOG = "Дубль {}: eventId={}, пропуск операции";
 
-    private final KafkaDeduplicateService service;
+    private final KafkaDeduplicateService deduplicateService;
     private final EmailService emailService;
+    private final EventReminderService reminderService;
 
     @KafkaListener(topics = EVENT_CREATED, groupId = "notification-service-event-created")
     public void handle(EventCreatedMessage message) {
         logMessage(EVENT_CREATED, message);
 
         var eventId = message.eventId();
-        if (service.isDuplicate(EVENT_CREATED, eventId)) {
+        if (deduplicateService.isDuplicate(EVENT_CREATED, eventId)) {
             logDuplicate(EVENT_CREATED, eventId);
             return;
         }
@@ -50,6 +52,19 @@ public class EventMessageConsumer {
 
         notifyTelegram(message);
         emailService.notify(message);
+        reminderService.rescheduleForEventDateChange(message.eventId(), message.newDateTime());
+    }
+
+    @KafkaListener(topics = BOOKING_CANCELED, groupId = "notification-service-booking-canceled")
+    public void handleBookingCanceled(BookingDeletedMessage message) {
+        logMessage(BOOKING_CANCELED, message);
+
+        var bookingId = message.bookingId();
+        if (deduplicateService.isDuplicate(BOOKING_CANCELED, bookingId)) {
+            logDuplicate(BOOKING_CANCELED, bookingId);
+            return;
+        }
+        reminderService.cancel(bookingId);
     }
 
     @KafkaListener(topics = BOOKING_FORCE_CANCELED, groupId = "notification-service-booking-force-canceled")
@@ -57,13 +72,14 @@ public class EventMessageConsumer {
         logMessage(BOOKING_FORCE_CANCELED, message);
 
         var id = message.operationId();
-        if (service.isDuplicate(BOOKING_FORCE_CANCELED, id)) {
+        if (deduplicateService.isDuplicate(BOOKING_FORCE_CANCELED, id)) {
             logDuplicate(BOOKING_FORCE_CANCELED, id);
             return;
         }
 
         notifyTelegram(message);
         emailService.notify(message);
+        deleteAllReminds(message.bookings());
     }
 
     @KafkaListener(topics = BOOKING_CASCADE_CANCELED, groupId = "notification-service-booking-cascade-canceled")
@@ -71,11 +87,12 @@ public class EventMessageConsumer {
         logMessage(BOOKING_CASCADE_CANCELED, message);
 
         var eventId = message.eventId();
-        if (service.isDuplicate(BOOKING_CASCADE_CANCELED, eventId)) {
+        if (deduplicateService.isDuplicate(BOOKING_CASCADE_CANCELED, eventId)) {
             logDuplicate(BOOKING_CASCADE_CANCELED, eventId);
             return;
         }
         emailService.notify(message);
+        deleteAllReminds(message.bookings());
         //TODO: отправка
     }
 
@@ -84,12 +101,13 @@ public class EventMessageConsumer {
         logMessage(BOOKING_CONFIRMED, message);
 
         var bookingId = message.bookingId();
-        if (service.isDuplicate(BOOKING_CONFIRMED, bookingId)) {
+        if (deduplicateService.isDuplicate(BOOKING_CONFIRMED, bookingId)) {
             logDuplicate(BOOKING_CONFIRMED, bookingId);
             return;
         }
 
         emailService.notify(message);
+        reminderService.scheduleIfRequested(message);
     }
 
     @KafkaListener(topics = BOOKING_DELETED_BY_ADMIN, groupId = "notification-service-booking-deleted-by-admin")
@@ -97,12 +115,13 @@ public class EventMessageConsumer {
         logMessage(BOOKING_DELETED_BY_ADMIN, message);
 
         var bookingId = message.bookingId();
-        if (service.isDuplicate(BOOKING_DELETED_BY_ADMIN, bookingId)) {
+        if (deduplicateService.isDuplicate(BOOKING_DELETED_BY_ADMIN, bookingId)) {
             logDuplicate(BOOKING_DELETED_BY_ADMIN, bookingId);
             return;
         }
 
         emailService.notify(message);
+        reminderService.cancel(bookingId);
     }
 
     private void logMessage(String topic, Object message) {
@@ -126,5 +145,12 @@ public class EventMessageConsumer {
     private void notifyTelegram(BookingsOutcompetedMessage message) {
         // TODO: отправка через Telegram-бота
         log.info("Отправил информацию в Telegram об отмене брони из-за уменьшения количества мест {}", message);
+    }
+
+    private void deleteAllReminds(List<CanceledBookingEntry> entries) {
+        var ids = entries.stream()
+                .map(CanceledBookingEntry::bookingId)
+                .toList();
+        reminderService.cancelAll(ids);
     }
 }

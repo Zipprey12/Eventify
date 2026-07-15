@@ -7,6 +7,7 @@ import ru.zipprey.eventify.kafka.booking.CanceledBookingEntry;
 import ru.zipprey.eventify.kafka.event.EventCreatedMessage;
 import ru.zipprey.eventify.kafka.event.EventDateChangedMessage;
 import ru.zipprey.eventify.notification.model.email.EmailMessageDto;
+import ru.zipprey.eventify.notification.model.enity.EventReminder;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -101,6 +102,22 @@ public class EmailMessageFormatter {
                 
                 Приносим извинения за неудобства.
                 """.formatted(eventTitle, booking.ticketsCount());
+        return new EmailMessageDto(subject, body);
+    }
+
+    public EmailMessageDto formatReminder(EventReminder reminder) {
+        var subject = "Напоминание: " + reminder.getEventTitle();
+        var body = """
+                Здравствуйте!
+                
+                Напоминаем, что скоро начнётся событие "%s", на которое у вас забронированы билеты.
+                
+                Дата и время: %s
+                Количество билетов: %d
+                """.formatted(reminder.getEventTitle(),
+                DATE_FORMAT.format(reminder.getEventDateTime()),
+                reminder.getTicketsCount());
+
         return new EmailMessageDto(subject, body);
     }
 }
