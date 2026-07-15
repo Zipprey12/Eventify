@@ -109,7 +109,7 @@ public class EventServiceImpl implements EventService {
             var dateChangedEvent = eventFactory.create(
                     Topics.DATE_CHANGED.getTopic(),
                     String.valueOf(saved.getId()),
-                    new EventDateChangedMessage(saved.getId(), saved.getDate()),
+                    new EventDateChangedMessage(saved.getId(), saved.getTitle(), saved.getDate()),
                     OutboxStatus.READY
             );
             outboxDataService.add(dateChangedEvent);

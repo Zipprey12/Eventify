@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.outbox.OutboxStatus;
 import ru.zipprey.eventify.outbox.entity.OutboxEvent;
 import ru.zipprey.eventify.outbox.repository.OutboxEventRepository;
@@ -39,6 +40,7 @@ public class OutboxDataService {
         repository.save(event);
     }
 
+    @Transactional
     public boolean markReady(OutboxEvent event, String enrichedPayload, String payloadType) {
         var updated = repository.updatePayloadAndStatusIfCurrent(
                 event.getId(), enrichedPayload, payloadType,
@@ -46,6 +48,7 @@ public class OutboxDataService {
         return updated > 0;
     }
 
+    @Transactional
     public boolean markUnavailable(OutboxEvent event) {
         var updated = repository.updatePayloadAndStatusIfCurrent(
                 event.getId(), "", "unknown",

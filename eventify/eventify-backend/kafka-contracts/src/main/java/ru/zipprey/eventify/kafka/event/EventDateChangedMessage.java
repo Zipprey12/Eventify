@@ -4,6 +4,7 @@ import java.time.Instant;
 
 public record EventDateChangedMessage(
         Long eventId,
+        String eventTitle,
         Instant newDateTime
 ) {
 }

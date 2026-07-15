@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.notification.controller.telegram;
+package ru.zipprey.eventify.notification.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

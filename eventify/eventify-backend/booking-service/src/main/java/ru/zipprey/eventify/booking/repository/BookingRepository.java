@@ -26,7 +26,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                   @Param("unconfirmedOnly") boolean unconfirmedOnly,
                                   Pageable pageable);
 
-    //todo сделать ограничение по количеству
     List<Booking> findAllByEventIdAndConfirmedTrueOrderByCreatedAtDesc(Long eventId);
 
     List<Booking> deleteAllByEventId(long eventId);
@@ -41,4 +40,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Modifying
     @Query("DELETE FROM Booking b WHERE b.confirmed = false AND b.expiryTime < :instant")
     int deleteAllExpiredUnconfirmed(@Param("instant") Instant instant);
+
+    @Query("SELECT b.customerEmail FROM Booking b WHERE b.eventId = :eventId")
+    List<String> findCustomerEmailsByEventId(@Param("eventId") Long eventId);
 }
