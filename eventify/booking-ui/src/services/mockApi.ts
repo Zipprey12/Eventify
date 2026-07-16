@@ -285,6 +285,7 @@ let mockNotificationPreferences: NotificationPreferences = {
   notifyNewEvents: true,
   notifyUpcoming: true,
   notifyBeforeHours: 24,
+  emailConfirmed: true,
 };
 
 // Simulate API delay
@@ -294,7 +295,7 @@ class MockApiService {
   // Auth endpoints
   async login(data: LoginRequest): Promise<AuthResponse> {
     await delay(500);
-    
+
     if (data.email === 'admin@example.com' && data.password === 'password123') {
       return {
         token: 'mock-admin-token',
@@ -312,7 +313,7 @@ class MockApiService {
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     await delay(500);
-    
+
     // Simulate successful registration
     return {
       token: 'mock-new-user-token',
@@ -323,11 +324,11 @@ class MockApiService {
   // Events endpoints
   async getEvents(pageable: Pageable, from?: string, to?: string): Promise<PageableEventResponse> {
     await delay(300);
-    
+
     const startIndex = pageable.page * pageable.size;
     const endIndex = startIndex + pageable.size;
     const filteredEvents = mockEvents.slice(startIndex, endIndex);
-    
+
     return {
       content: filteredEvents,
       totalElements: mockEvents.length,
@@ -342,7 +343,7 @@ class MockApiService {
 
   async getEvent(id: number): Promise<Event> {
     await delay(200);
-    
+
     const event = mockEvents.find(e => e.id === id);
     if (!event) {
       throw new Error('Event not found');
@@ -353,7 +354,7 @@ class MockApiService {
   // Admin events endpoints
   async createEvent(data: EventCreateRequest): Promise<Event> {
     await delay(500);
-    
+
     const newEvent: Event = {
       id: Math.max(...mockEvents.map(e => e.id)) + 1,
       title: data.title,
@@ -363,21 +364,21 @@ class MockApiService {
       availableTickets: data.totalTickets,
       coverUrl: data.coverUrl || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=300&fit=crop', // Default image if not provided
     };
-    
+
     mockEvents.push(newEvent);
     return newEvent;
   }
 
   async updateEvent(id: number, data: EventUpdateRequest): Promise<Event> {
     await delay(500);
-    
+
     const eventIndex = mockEvents.findIndex(e => e.id === id);
     if (eventIndex === -1) {
       throw new Error('Event not found');
     }
-    
-    const updatedEvent = { 
-      ...mockEvents[eventIndex], 
+
+    const updatedEvent = {
+      ...mockEvents[eventIndex],
       ...data,
       // Preserve coverUrl if not provided in update
       coverUrl: data.coverUrl !== undefined ? data.coverUrl : mockEvents[eventIndex].coverUrl
@@ -388,12 +389,12 @@ class MockApiService {
 
   async deleteEvent(id: number): Promise<void> {
     await delay(300);
-    
+
     const eventIndex = mockEvents.findIndex(e => e.id === id);
     if (eventIndex === -1) {
       throw new Error('Event not found');
     }
-    
+
     mockEvents.splice(eventIndex, 1);
   }
 
@@ -407,19 +408,19 @@ class MockApiService {
 
   async createBooking(data: CreateBookingRequest): Promise<Booking> {
     await delay(500);
-    
+
     const event = mockEvents.find(e => e.id === data.eventId);
     if (!event) {
       throw new Error('Event not found');
     }
-    
+
     if (event.availableTickets < data.ticketCount) {
       throw new Error('Not enough available tickets');
     }
-    
+
     // Update available tickets
     event.availableTickets -= data.ticketCount;
-    
+
     const newBooking: Booking = {
       id: Math.max(...mockBookings.map(b => b.id)) + 1,
       event,
@@ -429,19 +430,19 @@ class MockApiService {
       createdAt: new Date().toISOString(),
       expiryTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
     };
-    
+
     mockBookings.push(newBooking);
     return newBooking;
   }
 
   async updateBooking(id: number, data: BookingUpdateRequest): Promise<Booking> {
     await delay(500);
-    
+
     const bookingIndex = mockBookings.findIndex(b => b.id === id);
     if (bookingIndex === -1) {
       throw new Error('Booking not found');
     }
-    
+
     const updatedBooking = { ...mockBookings[bookingIndex], ...data };
     mockBookings[bookingIndex] = updatedBooking;
     return updatedBooking;
@@ -449,40 +450,40 @@ class MockApiService {
 
   async deleteBooking(id: number): Promise<void> {
     await delay(300);
-    
+
     const bookingIndex = mockBookings.findIndex(b => b.id === id);
     if (bookingIndex === -1) {
       throw new Error('Booking not found');
     }
-    
+
     const booking = mockBookings[bookingIndex];
     // Restore available tickets
     const event = mockEvents.find(e => e.id === booking.event.id);
     if (event) {
       event.availableTickets += booking.ticketCount;
     }
-    
+
     mockBookings.splice(bookingIndex, 1);
   }
 
   // Admin bookings endpoints - возвращает все бронирования
   async getAdminBookings(pageable: Pageable, eventId?: number, unconfirmedOnly?: boolean): Promise<PageableBookingResponse> {
     await delay(300);
-    
+
     let filteredBookings = [...mockBookings]; // Копия массива
-    
+
     if (eventId) {
       filteredBookings = filteredBookings.filter(b => b.event.id === eventId);
     }
-    
+
     if (unconfirmedOnly) {
       filteredBookings = filteredBookings.filter(b => !b.confirmed);
     }
-    
+
     const startIndex = pageable.page * pageable.size;
     const endIndex = startIndex + pageable.size;
     const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
-    
+
     return {
       content: paginatedBookings,
       totalElements: filteredBookings.length,
@@ -497,23 +498,23 @@ class MockApiService {
 
   async confirmBooking(id: number): Promise<void> {
     await delay(300);
-    
+
     const bookingIndex = mockBookings.findIndex(b => b.id === id);
     if (bookingIndex === -1) {
       throw new Error('Booking not found');
     }
-    
+
     mockBookings[bookingIndex].confirmed = true;
   }
 
   async deleteAdminBooking(id: number): Promise<void> {
     await delay(300);
-    
+
     const bookingIndex = mockBookings.findIndex(b => b.id === id);
     if (bookingIndex === -1) {
       throw new Error('Booking not found');
     }
-    
+
     const booking = mockBookings[bookingIndex];
     // Restore available tickets if not confirmed
     if (!booking.confirmed) {
@@ -522,7 +523,7 @@ class MockApiService {
         event.availableTickets += booking.ticketCount;
       }
     }
-    
+
     mockBookings.splice(bookingIndex, 1);
   }
 
@@ -551,6 +552,22 @@ class MockApiService {
     await delay(500);
     return 'https://t.me/your_bot?start=link123';
   }
+
+  // Email confirmation — в моке любой code, кроме 'invalid', считается верным.
+  async confirmEmail(email: string, code: string): Promise<void> {
+    await delay(400);
+    if (code === 'invalid') {
+      throw new Error('Неверный код подтверждения');
+    }
+    mockNotificationPreferences = {
+      ...mockNotificationPreferences,
+      emailConfirmed: true,
+    };
+  }
+
+  async resendEmailConfirmation(): Promise<void> {
+    await delay(400);
+  }
 }
 
-export const mockApiService = new MockApiService(); 
+export const mockApiService = new MockApiService();

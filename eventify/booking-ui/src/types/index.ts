@@ -30,6 +30,7 @@ export interface NotificationPreferences {
   notifyNewEvents: boolean;
   notifyUpcoming: boolean;
   notifyBeforeHours: number;
+  emailConfirmed?: boolean;
 }
 
 export interface AuthResponse {
@@ -108,4 +109,4 @@ export interface ErrorResponse {
     field: string;
     message: string;
   }>;
-} 
+}

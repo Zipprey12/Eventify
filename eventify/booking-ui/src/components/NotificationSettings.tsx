@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NotificationPreferences } from '../types';
 import { apiService } from '../services/api';
-import { Bell, Save, Trash2, MessageCircle } from 'lucide-react';
+import { Bell, Save, Trash2, MessageCircle, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const NotificationSettings: React.FC = () => {
@@ -12,6 +12,7 @@ const NotificationSettings: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const [telegramCode, setTelegramCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,19 @@ const NotificationSettings: React.FC = () => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    try {
+      setResendingConfirmation(true);
+      await apiService.resendEmailConfirmation();
+      toast.success('Письмо с подтверждением отправлено повторно');
+    } catch (error) {
+      console.error('Error resending confirmation:', error);
+      toast.error('Не удалось отправить письмо повторно');
+    } finally {
+      setResendingConfirmation(false);
+    }
+  };
+
   const handleLinkTelegram = async () => {
     try {
       const code = await apiService.linkTelegram();
@@ -101,6 +115,28 @@ const NotificationSettings: React.FC = () => {
         </p>
       </div>
 
+      {preferences.emailConfirmed === false && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start">
+          <AlertTriangle className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-800">
+              Email не подтверждён
+            </p>
+            <p className="text-sm text-amber-700 mt-1">
+              Мы отправили письмо со ссылкой для подтверждения на вашу почту при регистрации.
+              Пока email не подтверждён, уведомления отправляться не будут.
+            </p>
+            <button
+              onClick={handleResendConfirmation}
+              disabled={resendingConfirmation}
+              className="mt-3 inline-flex items-center px-3 py-1.5 border border-amber-300 text-sm font-medium rounded-md text-amber-800 bg-white hover:bg-amber-100 disabled:opacity-50"
+            >
+              {resendingConfirmation ? 'Отправляем...' : 'Отправить письмо ещё раз'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 flex items-center">
@@ -113,7 +149,7 @@ const NotificationSettings: React.FC = () => {
           {/* Email Notifications */}
           <div>
             <h3 className="text-md font-medium text-gray-900 mb-4">Email уведомления</h3>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -183,12 +219,12 @@ const NotificationSettings: React.FC = () => {
               <MessageCircle className="w-5 h-5 mr-2" />
               Интеграция с Telegram
             </h3>
-            
+
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
                 Привяжите ваш Telegram аккаунт для получения уведомлений в мессенджере
               </p>
-              
+
               <button
                 onClick={handleLinkTelegram}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -219,7 +255,7 @@ const NotificationSettings: React.FC = () => {
             <Trash2 className="w-4 h-4 mr-2" />
             Сбросить настройки
           </button>
-          
+
           <button
             onClick={handleSave}
             disabled={saving}
@@ -234,4 +270,4 @@ const NotificationSettings: React.FC = () => {
   );
 };
 
-export default NotificationSettings; 
+export default NotificationSettings;

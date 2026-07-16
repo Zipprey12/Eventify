@@ -6,12 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.notification.mapper.EventReminderMapper;
+import ru.zipprey.eventify.notification.model.email.EmailTemplate;
+import ru.zipprey.eventify.notification.model.enity.EventReminder;
 import ru.zipprey.eventify.notification.repository.email.EventReminderRepository;
 import ru.zipprey.eventify.notification.repository.SettingsRepository;
+import ru.zipprey.eventify.notification.service.email.EmailDateFormatter;
+import ru.zipprey.eventify.notification.service.pending.PendingEmailService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -21,6 +26,7 @@ public class EventReminderServiceImpl implements EventReminderService {
     private final EventReminderRepository repository;
     private final SettingsRepository settingsRepository;
     private final EventReminderMapper mapper;
+    private final PendingEmailService pendingEmailService;
 
     @Override
     @Transactional
@@ -93,7 +99,17 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     @Override
     @Transactional
-    public boolean claim(Long reminderId) {
-        return repository.markSentIfNotAlready(reminderId) > 0;
+    public void claimAndEnqueueReminder(EventReminder reminder) {
+        var claimed = repository.markSentIfNotAlready(reminder.getId()) > 0;
+        if (!claimed) {
+            return;
+        }
+
+        var args = Map.of(
+                "eventTitle", reminder.getEventTitle(),
+                "eventDateTime", EmailDateFormatter.format(reminder.getEventDateTime()),
+                "ticketsCount", String.valueOf(reminder.getTicketsCount())
+        );
+        pendingEmailService.enqueue(reminder.getCustomerEmail(), EmailTemplate.EVENT_REMINDER, args);
     }
 }

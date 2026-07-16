@@ -19,7 +19,6 @@ public class PendingEmailServiceImpl implements PendingEmailService {
     private final PendingEmailRepository repository;
     private final ObjectMapper objectMapper;
 
-
     @Override
     @Transactional
     public void enqueue(String recipient, EmailTemplate template, Map<String, String> args) {

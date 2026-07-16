@@ -10,12 +10,13 @@ import EventForm from './components/EventForm';
 import BookingList from './components/BookingList';
 import AdminBookingList from './components/AdminBookingList';
 import NotificationSettings from './components/NotificationSettings';
+import ConfirmEmail from './components/ConfirmEmail';
 import './App.css';
 
 // Protected Route component
-const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ 
-  children, 
-  adminOnly = false 
+const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({
+  children,
+  adminOnly = false
 }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
 
@@ -50,46 +51,62 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthForm />;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <main>
-        <Routes>
-          <Route path="/" element={<Navigate to="/events" replace />} />
-          <Route path="/events" element={<EventList />} />
-          <Route path="/events/new" element={
-            <ProtectedRoute adminOnly>
-              <EventForm mode="create" />
-            </ProtectedRoute>
-          } />
-          <Route path="/events/:id" element={<EventDetail />} />
-          <Route path="/events/:id/edit" element={
-            <ProtectedRoute adminOnly>
-              <EventForm mode="edit" />
-            </ProtectedRoute>
-          } />
-          <Route path="/bookings" element={
-            <ProtectedRoute>
-              <BookingList />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/bookings" element={
-            <ProtectedRoute adminOnly>
-              <AdminBookingList />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <NotificationSettings />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </main>
-    </div>
+    <Routes>
+      {/*
+        Доступно без авторизации: переход по ссылке из письма может
+        произойти в браузере/на устройстве без активной сессии. Если этот
+        маршрут объявить внутри блока ниже (доступного только когда
+        isAuthenticated), он никогда не откроется тем, кому он и нужен —
+        только что зарегистрировавшимся, ещё не подтверждённым пользователям.
+      */}
+      <Route path="/confirm-email" element={<ConfirmEmail />} />
+
+      <Route
+        path="*"
+        element={
+          isAuthenticated ? (
+            <div className="min-h-screen bg-gray-50">
+              <Navigation />
+              <main>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/events" replace />} />
+                  <Route path="/events" element={<EventList />} />
+                  <Route path="/events/new" element={
+                    <ProtectedRoute adminOnly>
+                      <EventForm mode="create" />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/events/:id" element={<EventDetail />} />
+                  <Route path="/events/:id/edit" element={
+                    <ProtectedRoute adminOnly>
+                      <EventForm mode="edit" />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/bookings" element={
+                    <ProtectedRoute>
+                      <BookingList />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/bookings" element={
+                    <ProtectedRoute adminOnly>
+                      <AdminBookingList />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <NotificationSettings />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+              </main>
+            </div>
+          ) : (
+            <AuthForm />
+          )
+        }
+      />
+    </Routes>
   );
 };
 

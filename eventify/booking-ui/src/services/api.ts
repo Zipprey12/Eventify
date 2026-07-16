@@ -24,7 +24,7 @@ class ApiService {
   constructor() {
     this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
     this.useMocks = process.env.REACT_APP_USE_MOCKS === 'true' || !process.env.REACT_APP_API_URL;
-    
+
     if (this.useMocks) {
       console.log('🔧 Using mock API service for demonstration');
       return;
@@ -55,7 +55,8 @@ class ApiService {
     this.api.interceptors.response.use(
       (response: any) => response,
       (error: any) => {
-        if (error.response?.status === 401) {
+        const isAuthEndpoint = error.config?.url?.startsWith('/auth/');
+        if (error.response?.status === 401 && !isAuthEndpoint) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/';
@@ -91,7 +92,7 @@ class ApiService {
     params.append('pageable', JSON.stringify(pageable));
     if (from) params.append('from', from);
     if (to) params.append('to', to);
-    
+
     const response = await this.api.get(`/events?${params}`);
     return response.data;
   }
@@ -169,7 +170,7 @@ class ApiService {
     params.append('pageable', JSON.stringify(pageable));
     if (eventId) params.append('eventId', eventId.toString());
     if (unconfirmedOnly !== undefined) params.append('unconfirmedOnly', unconfirmedOnly.toString());
-    
+
     const response = await this.api.get(`/admin/bookings?${params}`);
     return response.data;
   }
@@ -219,6 +220,21 @@ class ApiService {
     const response = await this.api.post('/user/telegram/link');
     return response.data;
   }
+
+  async confirmEmail(email: string, code: string): Promise<void> {
+    if (this.useMocks) {
+      return mockApiService.confirmEmail(email, code);
+    }
+    const params = new URLSearchParams({ email, code });
+    await this.api.post(`/user/notifications/confirm-email?${params}`);
+  }
+
+  async resendEmailConfirmation(): Promise<void> {
+    if (this.useMocks) {
+      return mockApiService.resendEmailConfirmation();
+    }
+    await this.api.post('/user/notifications/resend-confirmation');
+  }
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();

@@ -44,7 +44,7 @@ public interface EventReminderRepository extends JpaRepository<EventReminder, Lo
             UPDATE event_reminders
             SET notify_before_hours = :hours, remind_at = event_date_time - (:hours || ' hours')::interval,
                 sent = (event_date_time - (:hours || ' hours')::interval) <= now()
-            WHERE customer_email = :email
+            WHERE customer_email = :email AND event_date_time > now()
             """, nativeQuery = true)
     int rescheduleForHoursChange(@Param("email") String email, @Param("hours") Integer hours);
 

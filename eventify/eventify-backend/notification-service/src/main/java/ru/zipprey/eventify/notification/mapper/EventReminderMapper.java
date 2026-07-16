@@ -12,5 +12,6 @@ public interface EventReminderMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "sent", constant = "false")
+    @Mapping(target = "sentAt", ignore = true)
     EventReminder toEntity(BookingConfirmedMessage message, Instant remindAt, Integer notifyBeforeHours);
 }

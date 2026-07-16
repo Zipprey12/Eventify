@@ -1,6 +1,7 @@
 package ru.zipprey.eventify.notification.service.reminder;
 
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
+import ru.zipprey.eventify.notification.model.enity.EventReminder;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,5 +18,5 @@ public interface EventReminderService {
 
     void rescheduleForSettingsChange(String customerEmail, Boolean notifyUpcoming, Integer notifyBeforeHours);
 
-    boolean claim(Long reminderId);
+    void claimAndEnqueueReminder(EventReminder reminder);
 }
