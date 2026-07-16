@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: pending-emails-1
+      author: zipprey
+      comment: Outbox-таблица для отправки писем email
+      changes:
+        - createTable:
+            tableName: pending_emails
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: recipient
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: template
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: arguments_json
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: timestamptz
+
+        - sql:
+            sql: >
+              CREATE INDEX idx_pending_emails_status
+              ON pending_emails (status, created_at)
+              WHERE status = 'PENDING';

@@ -24,6 +24,7 @@ public class SettingsServiceImpl implements SettingsService {
                 .notifyBeforeHours(24)
                 .notifyNewEvents(true)
                 .notifyUpcoming(true)
+                .emailConfirmed(false)
                 .build();
     }
 
@@ -43,12 +44,10 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public SettingsDto update(SettingsDto dto, Authentication authentication) {
         var email = EmailValidator.getEmail(authentication);
-        if (!repository.existsById(email)) {
-            throw new SettingsNotFoundException(email);
-        }
+        var entity = repository.findById(email)
+                .orElseThrow(() -> new SettingsNotFoundException(email));
 
-        var entity = mapper.toEntity(dto);
-        entity.setCustomerEmail(email);
+        mapper.updateEntity(dto, entity);
 
         var saved = repository.save(entity);
         reminderService.rescheduleForSettingsChange(email, saved.getNotifyUpcoming(), saved.getNotifyBeforeHours());

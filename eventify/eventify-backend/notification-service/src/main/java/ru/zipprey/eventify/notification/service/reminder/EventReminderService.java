@@ -16,4 +16,6 @@ public interface EventReminderService {
     void rescheduleForEventDateChange(Long eventId, Instant newEventDateTime);
 
     void rescheduleForSettingsChange(String customerEmail, Boolean notifyUpcoming, Integer notifyBeforeHours);
+
+    boolean claim(Long reminderId);
 }

@@ -21,4 +21,5 @@ public class SettingsDto {
     @NotNull
     private Integer notifyBeforeHours;
 
+    private Boolean emailConfirmed;
 }

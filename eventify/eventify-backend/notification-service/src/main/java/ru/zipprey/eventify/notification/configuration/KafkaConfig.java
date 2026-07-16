@@ -22,8 +22,10 @@ public class KafkaConfig {
                 bootstrapServers,
                 "notification-service",
                 "ru.zipprey.eventify.kafka.event",
-                "ru.zipprey.eventify.kafka.booking");
+                "ru.zipprey.eventify.kafka.booking",
+                "ru.zipprey.eventify.kafka.auth");
     }
+
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(

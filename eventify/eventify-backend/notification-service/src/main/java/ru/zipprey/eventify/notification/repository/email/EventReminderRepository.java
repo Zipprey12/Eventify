@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.notification.repository;
+package ru.zipprey.eventify.notification.repository.email;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

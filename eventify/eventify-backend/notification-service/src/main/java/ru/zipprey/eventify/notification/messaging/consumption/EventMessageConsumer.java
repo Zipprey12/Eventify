@@ -52,7 +52,8 @@ public class EventMessageConsumer {
 
         notifyTelegram(message);
         emailService.notify(message);
-        reminderService.rescheduleForEventDateChange(message.eventId(), message.newDateTime());
+        safeExecute(() -> reminderService.rescheduleForEventDateChange(message.eventId(), message.newDateTime()),
+                "rescheduleForEventDateChange, eventId=" + message.eventId());
     }
 
     @KafkaListener(topics = BOOKING_CANCELED, groupId = "notification-service-booking-canceled")
@@ -64,7 +65,7 @@ public class EventMessageConsumer {
             logDuplicate(BOOKING_CANCELED, bookingId);
             return;
         }
-        reminderService.cancel(bookingId);
+        safeExecute(() -> reminderService.cancel(bookingId), "cancel, bookingId=" + bookingId);
     }
 
     @KafkaListener(topics = BOOKING_FORCE_CANCELED, groupId = "notification-service-booking-force-canceled")
@@ -79,7 +80,7 @@ public class EventMessageConsumer {
 
         notifyTelegram(message);
         emailService.notify(message);
-        deleteAllReminds(message.bookings());
+        safeExecute(() -> deleteAllReminds(message.bookings()), "cancelAll, operationId=" + id);
     }
 
     @KafkaListener(topics = BOOKING_CASCADE_CANCELED, groupId = "notification-service-booking-cascade-canceled")
@@ -92,8 +93,8 @@ public class EventMessageConsumer {
             return;
         }
         emailService.notify(message);
-        deleteAllReminds(message.bookings());
-        //TODO: отправка
+        safeExecute(() -> deleteAllReminds(message.bookings()), "cancelAll, eventId=" + eventId);
+        //TODO: отправка в telegram
     }
 
     @KafkaListener(topics = BOOKING_CONFIRMED, groupId = "notification-service-booking-confirmed")
@@ -107,7 +108,7 @@ public class EventMessageConsumer {
         }
 
         emailService.notify(message);
-        reminderService.scheduleIfRequested(message);
+        safeExecute(() -> reminderService.scheduleIfRequested(message), "scheduleIfRequested, bookingId=" + bookingId);
     }
 
     @KafkaListener(topics = BOOKING_DELETED_BY_ADMIN, groupId = "notification-service-booking-deleted-by-admin")
@@ -121,7 +122,7 @@ public class EventMessageConsumer {
         }
 
         emailService.notify(message);
-        reminderService.cancel(bookingId);
+        safeExecute(() -> reminderService.cancel(bookingId), "cancel, bookingId=" + bookingId);
     }
 
     private void logMessage(String topic, Object message) {
@@ -152,5 +153,13 @@ public class EventMessageConsumer {
                 .map(CanceledBookingEntry::bookingId)
                 .toList();
         reminderService.cancelAll(ids);
+    }
+
+    private void safeExecute(Runnable action, String context){
+        try {
+            action.run();
+        } catch (Exception e) {
+            log.error("Ошибка при работе с напоминаниями ({}): {}", context, e.getMessage());
+        }
     }
 }

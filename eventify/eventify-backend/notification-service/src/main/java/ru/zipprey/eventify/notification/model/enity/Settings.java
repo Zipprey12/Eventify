@@ -30,4 +30,10 @@ public class Settings {
 
     @Column(name = "notify_before_hours")
     private Integer notifyBeforeHours;
+
+    @Column(name = "email_confirmed", nullable = false)
+    private Boolean emailConfirmed;
+
+    @Column(name = "verification_code")
+    private String verificationCode;
 }

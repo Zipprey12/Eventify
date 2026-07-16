@@ -2,6 +2,7 @@ package ru.zipprey.eventify.notification.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,6 +20,7 @@ public class SecurityConfig extends BaseSecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/user/notifications/confirm-email").permitAll()
                 .anyRequest().authenticated()
         );
         return buildFilterChain(http);

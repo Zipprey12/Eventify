@@ -21,16 +21,12 @@ public class SmtpEmailSender implements EmailSender {
     @Override
     public void send(String to, EmailMessageDto messageDto) {
         var subject = messageDto.subject();
-        try {
-            var message = new SimpleMailMessage();
-            message.setFrom(from);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(messageDto.body());
-            mailSender.send(message);
-            log.info("Письмо отправлено: to={}, subject={}", to, subject);
-        } catch (Exception e) {
-            log.error("Не удалось отправить письмо to={}, subject={}: {}", to, subject, e.getMessage());
-        }
+        var message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(messageDto.body());
+        mailSender.send(message);
+        log.info("Письмо отправлено: to={}, subject={}", to, subject);
     }
 }

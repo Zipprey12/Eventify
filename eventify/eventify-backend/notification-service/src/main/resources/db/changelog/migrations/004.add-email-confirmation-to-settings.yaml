@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: zipprey
+      comment: Добавлены колонки для подтверждения email
+      changes:
+        - addColumn:
+            tableName: notification_settings
+            columns:
+              - column:
+                  name: email_confirmed
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verification_code
+                  type: varchar(64)

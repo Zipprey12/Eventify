@@ -3,9 +3,10 @@ package ru.zipprey.eventify.notification.service.reminder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.notification.mapper.EventReminderMapper;
-import ru.zipprey.eventify.notification.repository.EventReminderRepository;
+import ru.zipprey.eventify.notification.repository.email.EventReminderRepository;
 import ru.zipprey.eventify.notification.repository.SettingsRepository;
 
 import java.time.Instant;
@@ -22,6 +23,7 @@ public class EventReminderServiceImpl implements EventReminderService {
     private final EventReminderMapper mapper;
 
     @Override
+    @Transactional
     public void scheduleIfRequested(BookingConfirmedMessage message) {
         var settings = settingsRepository.findById(message.customerEmail()).orElse(null);
         if (settings == null || !Boolean.TRUE.equals(settings.getNotifyUpcoming())) {
@@ -49,16 +51,19 @@ public class EventReminderServiceImpl implements EventReminderService {
     }
 
     @Override
+    @Transactional
     public void cancel(Long bookingId) {
         repository.deleteByBookingId(bookingId);
     }
 
     @Override
+    @Transactional
     public void cancelAll(List<Long> bookingIds) {
         repository.deleteAllByBookingIdIn(bookingIds);
     }
 
     @Override
+    @Transactional
     public void rescheduleForEventDateChange(Long eventId, Instant newEventDateTime) {
         var updated = repository.rescheduleForEventDateChange(eventId, newEventDateTime);
         if (updated > 0) {
@@ -68,6 +73,7 @@ public class EventReminderServiceImpl implements EventReminderService {
     }
 
     @Override
+    @Transactional
     public void rescheduleForSettingsChange(String customerEmail, Boolean notifyUpcoming, Integer notifyBeforeHours) {
         if (!Boolean.TRUE.equals(notifyUpcoming) || notifyBeforeHours == null) {
             var deleted = repository.deleteAllByCustomerEmail(customerEmail);
@@ -83,5 +89,11 @@ public class EventReminderServiceImpl implements EventReminderService {
             log.info("Пересчитаны напоминания ({} шт.) для {} — новый интервал {} ч.",
                     updated, customerEmail, notifyBeforeHours);
         }
+    }
+
+    @Override
+    @Transactional
+    public boolean claim(Long reminderId) {
+        return repository.markSentIfNotAlready(reminderId) > 0;
     }
 }
