@@ -1,0 +1,38 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: telegram-bot
+  datasource:
+    url: jdbc:postgresql://localhost:5437/telegram_bot_db
+    username: postgres
+    password: postgres
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+bot:
+  token: ${BOT_TOKEN}
+  name: ${BOT_NAME}
+
+internal:
+  own-key: ${BOT_INTERNAL_API_KEY}
+
+services:
+  notification:
+    base-url: http://notification-service:8084
+  booking:
+    base-url: http://booking-service:8083
+  event:
+    base-url: http://event-service:8082
+
+reminder:
+  refresh-interval-ms: 300000
+  poll-interval-ms: 30000
+  batch-size: 10

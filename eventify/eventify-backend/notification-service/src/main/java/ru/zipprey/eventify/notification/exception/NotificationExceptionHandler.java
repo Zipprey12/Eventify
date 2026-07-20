@@ -20,7 +20,7 @@ public class NotificationExceptionHandler {
 
     @ExceptionHandler(EmailConfirmException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleEmailConfirmException(EmailConfirmException e){
+    public ErrorResponse handleEmailConfirmException(EmailConfirmException e) {
         log.error(e.getMessage());
         return new ErrorResponse("EMAIL_CONFIRMATION_EXCEPTION", Level.ERROR, "Ошибка подтверждения email", null);
     }

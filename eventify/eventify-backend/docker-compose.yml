@@ -15,7 +15,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${AUTH_POSTGRES_USER} -d auth_db" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
 
   auth-service:
     build:
@@ -53,7 +53,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${EVENT_POSTGRES_USER} -d event_db" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
 
   event-redis:
     image: redis:7-alpine
@@ -81,6 +81,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${EVENT_POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       BOOKING_INTERNAL_API_KEY: ${BOOKING_INTERNAL_API_KEY}
+      BOT_INTERNAL_API_KEY: ${BOT_INTERNAL_API_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: event-redis
       REDIS_PORT: 6379
@@ -109,7 +110,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${BOOKING_POSTGRES_USER} -d booking_db" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
 
   booking-redis:
     image: redis:7-alpine
@@ -137,6 +138,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${BOOKING_POSTGRES_PASSWORD}
       BOOKING_INTERNAL_API_KEY: ${BOOKING_INTERNAL_API_KEY}
       NOTIFICATION_INTERNAL_API_KEY: ${NOTIFICATION_INTERNAL_API_KEY}
+      BOT_INTERNAL_API_KEY: ${BOT_INTERNAL_API_KEY}
       JWT_SECRET: ${JWT_SECRET}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: booking-redis
@@ -166,7 +168,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATION_POSTGRES_USER} -d notification_db" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
 
   notification-redis:
     image: redis:7-alpine
@@ -194,9 +196,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       NOTIFICATION_INTERNAL_API_KEY: ${NOTIFICATION_INTERNAL_API_KEY}
+      BOT_INTERNAL_API_KEY: ${BOT_INTERNAL_API_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: notification-redis
       REDIS_PORT: 6379
+      BOT_NAME: ${BOT_NAME}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
@@ -269,6 +273,61 @@ services:
       kafka:
         condition: service_healthy
 
+  bot-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: telegram_bot_db
+      POSTGRES_USER: ${BOT_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${BOT_POSTGRES_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - bot_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${BOT_POSTGRES_USER} -d telegram_bot_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  bot-redis:
+    image: redis:7-alpine
+    ports:
+      - "6382:6379"
+    volumes:
+      - bot_redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: telegram
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bot-postgres:5432/telegram_bot_db
+      SPRING_DATASOURCE_USERNAME: ${BOT_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${BOT_POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: bot-redis
+      SPRING_DATA_REDIS_PORT: 6379
+      BOT_TOKEN: ${BOT_TOKEN}
+      BOT_NAME: ${BOT_NAME}
+      BOT_INTERNAL_API_KEY: ${BOT_INTERNAL_API_KEY}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICES_NOTIFICATION_BASEURL: http://notification-service:8084
+      SERVICES_BOOKING_BASEURL: http://booking-service:8083
+      SERVICES_EVENT_BASEURL: http://event-service:8082
+    depends_on:
+      bot-postgres:
+        condition: service_healthy
+      bot-redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
 volumes:
   auth_postgres_data:
   event_postgres_data:
@@ -278,3 +337,5 @@ volumes:
   notification_redis_data:
   booking_redis_data:
   event_redis_data:
+  bot_postgres_data:
+  bot_redis_data:

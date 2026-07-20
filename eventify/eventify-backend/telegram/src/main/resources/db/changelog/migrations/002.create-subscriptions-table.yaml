@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: telegram-subscriptions-1
+      author: zipprey
+      comment: Таблица подписок на уведомления бота
+      changes:
+        - createTable:
+            tableName: telegram_subscriptions
+            columns:
+              - column:
+                  name: chat_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: notify_before_hours
+                  type: int
+                  defaultValueNumeric: 24
+                  constraints:
+                    nullable: false

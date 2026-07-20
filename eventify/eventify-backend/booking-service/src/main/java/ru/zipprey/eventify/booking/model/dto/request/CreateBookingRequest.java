@@ -9,5 +9,5 @@ public class CreateBookingRequest {
     private Long eventId;
 
     @Min(1)
-    private Integer ticketCount;
+    private Integer ticketsCount;
 }

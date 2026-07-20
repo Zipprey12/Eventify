@@ -22,3 +22,4 @@ jwt:
 internal:
   trusted-services:
     booking-service: ${BOOKING_INTERNAL_API_KEY}
+    telegram-bot: ${BOT_INTERNAL_API_KEY:}

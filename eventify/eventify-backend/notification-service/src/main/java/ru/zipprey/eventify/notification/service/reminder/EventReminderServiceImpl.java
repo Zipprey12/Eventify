@@ -8,8 +8,8 @@ import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.notification.mapper.EventReminderMapper;
 import ru.zipprey.eventify.notification.model.email.EmailTemplate;
 import ru.zipprey.eventify.notification.model.enity.EventReminder;
-import ru.zipprey.eventify.notification.repository.email.EventReminderRepository;
 import ru.zipprey.eventify.notification.repository.SettingsRepository;
+import ru.zipprey.eventify.notification.repository.email.EventReminderRepository;
 import ru.zipprey.eventify.notification.service.email.EmailDateFormatter;
 import ru.zipprey.eventify.notification.service.pending.PendingEmailService;
 

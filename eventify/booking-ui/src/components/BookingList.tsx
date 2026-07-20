@@ -25,8 +25,8 @@ const BookingList: React.FC = () => {
     loadBookings();
   }, [loadBookings]);
 
-  const handleDeleteBooking = async (bookingId: number, eventTitle: string, ticketCount: number) => {
-    if (!window.confirm(`Отменить вашу бронь на ${ticketCount} билетов?`)) {
+  const handleDeleteBooking = async (bookingId: number, eventTitle: string, ticketsCount: number) => {
+    if (!window.confirm(`Отменить вашу бронь на ${ticketsCount} билетов?`)) {
       return;
     }
 
@@ -113,7 +113,7 @@ const BookingList: React.FC = () => {
                           </div>
                           <div className="flex items-center">
                             <Users className="w-4 h-4 mr-1" />
-                            {booking.ticketCount} билетов
+                            {booking.ticketsCount} билетов
                           </div>
                           <div className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
@@ -130,7 +130,7 @@ const BookingList: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       {!booking.confirmed && (
                         <button
-                          onClick={() => handleDeleteBooking(booking.id, booking.event.title, booking.ticketCount)}
+                          onClick={() => handleDeleteBooking(booking.id, booking.event.title, booking.ticketsCount)}
                           className="inline-flex items-center p-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                           title="Отменить бронирование"
                         >

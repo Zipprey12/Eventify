@@ -13,13 +13,13 @@ const EventDetail: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [ticketCount, setTicketCount] = useState(1);
+  const [ticketsCount, setTicketsCount] = useState(1);
   const [showBookingTimer, setShowBookingTimer] = useState(false);
   const [expiryTime, setExpiryTime] = useState<string | null>(null);
 
   const loadEvent = useCallback(async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const eventData = await apiService.getEvent(parseInt(id));
@@ -40,7 +40,7 @@ const EventDetail: React.FC = () => {
   const handleBooking = async () => {
     if (!event || !user) return;
 
-    if (ticketCount > event.availableTickets) {
+    if (ticketsCount > event.availableTickets) {
       toast.error('Недостаточно доступных билетов');
       return;
     }
@@ -49,11 +49,11 @@ const EventDetail: React.FC = () => {
     try {
       const bookingData: CreateBookingRequest = {
         eventId: event.id,
-        ticketCount,
+        ticketsCount,
       };
 
       const booking = await apiService.createBooking(bookingData);
-      
+
       if (booking.expiryTime) {
         setExpiryTime(booking.expiryTime);
         setShowBookingTimer(true);
@@ -134,7 +134,7 @@ const EventDetail: React.FC = () => {
 
         <div className="p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Описание</h2>
@@ -148,7 +148,7 @@ const EventDetail: React.FC = () => {
                   <Calendar className="w-5 h-5 mr-3" />
                   <span>{formatDateTime(event.dateTime)}</span>
                 </div>
-                
+
                 <div className="flex items-center text-gray-600">
                   <Users className="w-5 h-5 mr-3" />
                   <span className={getStatusColor(event.availableTickets, event.totalTickets)}>
@@ -165,15 +165,15 @@ const EventDetail: React.FC = () => {
               {user && event.availableTickets > 0 && (
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Забронировать билеты</h3>
-                  
+
                   <div className="flex items-center space-x-4 mb-4">
-                    <label htmlFor="ticketCount" className="text-sm font-medium text-gray-700">
+                    <label htmlFor="ticketsCount" className="text-sm font-medium text-gray-700">
                       Количество:
                     </label>
                     <select
-                      id="ticketCount"
-                      value={ticketCount}
-                      onChange={(e) => setTicketCount(parseInt(e.target.value))}
+                      id="ticketsCount"
+                      value={ticketsCount}
+                      onChange={(e) => setTicketsCount(parseInt(e.target.value))}
                       className="border border-gray-300 rounded-md px-3 py-2 text-sm"
                     >
                       {Array.from({ length: Math.min(10, event.availableTickets) }, (_, i) => (
@@ -228,4 +228,4 @@ const EventDetail: React.FC = () => {
   );
 };
 
-export default EventDetail; 
+export default EventDetail;

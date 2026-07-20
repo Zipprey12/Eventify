@@ -20,7 +20,7 @@ export interface Booking {
   id: number;
   event: Event;
   customerEmail: string;
-  ticketCount: number;
+  ticketsCount: number;
   confirmed: boolean;
   createdAt: string;
   expiryTime?: string;
@@ -50,11 +50,11 @@ export interface RegisterRequest {
 
 export interface CreateBookingRequest {
   eventId: number;
-  ticketCount: number;
+  ticketsCount: number;
 }
 
 export interface BookingUpdateRequest {
-  ticketCount: number;
+  ticketsCount: number;
 }
 
 export interface EventCreateRequest {

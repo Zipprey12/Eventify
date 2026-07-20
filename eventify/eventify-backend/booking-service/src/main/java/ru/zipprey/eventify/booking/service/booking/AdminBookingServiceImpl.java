@@ -1,6 +1,7 @@
 package ru.zipprey.eventify.booking.service.booking;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,12 @@ import ru.zipprey.eventify.outbox.service.OutboxEventFactory;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static ru.zipprey.eventify.kafka.booking.Topics.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminBookingServiceImpl implements AdminBookingService {
@@ -39,7 +42,6 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     private final OutboxEventFactory eventFactory;
     private final ExpiryQueueService queueService;
 
-    //todo написать сервис с redis, который будет автоматически отменять просроченные заявки
     @Override
     @Transactional
     public void confirm(long id) {
@@ -83,10 +85,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .distinct()
                 .toList();
 
-        var events = caller.findByIds(eventIds)
-                .collectMap(EventDto::getId, Function.identity())
-                .block();
-
+        var events = safeFindEvents(eventIds);
         return found.map(booking -> {
             var response = mapper.toResponse(booking);
             response.setEvent(events.getOrDefault(booking.getEventId(), EventDto.deleted(booking.getEventId())));
@@ -129,6 +128,18 @@ public class AdminBookingServiceImpl implements AdminBookingService {
                 .map(Booking::getId)
                 .toList());
         return deleted;
+    }
+
+    private Map<Long, EventDto> safeFindEvents(List<Long> eventIds) {
+        try {
+            return caller.findByIds(eventIds)
+                    .collectMap(EventDto::getId, Function.identity())
+                    .blockOptional()
+                    .orElse(Map.of());
+        } catch (Exception e) {
+            log.warn("event-service недоступен при заполнении списка броней данными событий: {}", e.getMessage());
+            return Map.of();
+        }
     }
 
     private Booking validateAndGetBooking(long id) {

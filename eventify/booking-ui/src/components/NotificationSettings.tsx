@@ -13,7 +13,7 @@ const NotificationSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [resendingConfirmation, setResendingConfirmation] = useState(false);
-  const [telegramCode, setTelegramCode] = useState<string | null>(null);
+  const [telegramLink, setTelegramLink] = useState<string | null>(null);
 
   useEffect(() => {
     loadPreferences();
@@ -82,12 +82,12 @@ const NotificationSettings: React.FC = () => {
 
   const handleLinkTelegram = async () => {
     try {
-      const code = await apiService.linkTelegram();
-      setTelegramCode(code);
-      toast.success('Код для привязки Telegram получен');
+      const link = await apiService.linkTelegram();
+      setTelegramLink(link);
+      toast.success('Ссылка для привязки Telegram получена');
     } catch (error) {
       console.error('Error linking telegram:', error);
-      toast.error('Ошибка при получении кода для Telegram');
+      toast.error('Ошибка при получении ссылки для Telegram');
     }
   };
 
@@ -232,14 +232,19 @@ const NotificationSettings: React.FC = () => {
                 Привязать Telegram
               </button>
 
-              {telegramCode && (
+              {telegramLink && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800 mb-2">
-                    Отправьте этот код боту @your_bot_name:
+                  <p className="text-sm text-blue-800 mb-3">
+                    Перейдите по ссылке — Telegram сам предложит отправить команду для привязки:
                   </p>
-                  <div className="bg-white p-3 rounded border font-mono text-lg text-center">
-                    {telegramCode}
-                  </div>
+                  <a
+                    href={telegramLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600"
+                  >
+                    Открыть Telegram
+                  </a>
                 </div>
               )}
             </div>

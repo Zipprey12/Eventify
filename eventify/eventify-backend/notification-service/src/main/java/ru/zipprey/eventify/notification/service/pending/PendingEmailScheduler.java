@@ -36,7 +36,7 @@ public class PendingEmailScheduler {
             try {
                 process(email);
             } catch (Exception e) {
-                log.error("Ошибка обработки письма id={} to={}: {}", email.getId(), email.getRecipient(), e.getMessage());
+                log.error("Ошибка отправки письма id={} to={}: {}", email.getId(), email.getRecipient(), e.getMessage());
             }
         }
     }

@@ -1,6 +1,7 @@
 package ru.zipprey.eventify.booking.service.booking;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +25,12 @@ import ru.zipprey.eventify.outbox.service.OutboxEventFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static ru.zipprey.eventify.kafka.booking.Topics.DELETED;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -66,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse create(CreateBookingRequest request, Authentication authentication) {
         var event = eventsCaller.findById(request.getEventId()).block();
 
-        if (event.getAvailableTickets() < request.getTicketCount()) {
+        if (event.getAvailableTickets() < request.getTicketsCount()) {
             throw new NotEnoughTicketsException(event.getTitle(), event.getAvailableTickets());
         }
 
@@ -115,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse fillEvent(Booking booking) {
-        var event = eventsCaller.findById(booking.getEventId()).block();
+        var event = safeFindEvent(booking.getEventId());
         var response = mapper.toResponse(booking);
         response.setEvent(event);
         return response;
@@ -124,20 +127,40 @@ public class BookingServiceImpl implements BookingService {
     private List<BookingResponse> fillEvents(List<Booking> bookings) {
         var eventIds = bookings.stream()
                 .map(Booking::getEventId)
+                .distinct()
                 .toList();
 
-        var events = eventsCaller.findByIds(eventIds).
-                collectMap(EventDto::getId, Function.identity())
-                .block();
+        var events = safeFindEvents(eventIds);
 
         return bookings.stream()
-                .map(mapper::toResponse)
-                .map(r -> {
-                    var id = r.getEvent().getId();
-                    r.setEvent(events.getOrDefault(id, EventDto.deleted(id)));
-                    return r;
+                .map(b -> {
+                    var response = mapper.toResponse(b);
+                    var id = response.getEvent().getId();
+                    response.setEvent(events.getOrDefault(id, EventDto.deleted(id)));
+                    return response;
                 })
                 .toList();
+    }
+
+    private EventDto safeFindEvent(Long eventId) {
+        try {
+            return eventsCaller.findById(eventId).block();
+        } catch (Exception e) {
+            log.warn("event-service недоступен для заполнения брони данными события {}: {}", eventId, e.getMessage());
+            return EventDto.deleted(eventId);
+        }
+    }
+
+    private Map<Long, EventDto> safeFindEvents(List<Long> eventIds) {
+        try {
+            return eventsCaller.findByIds(eventIds)
+                    .collectMap(EventDto::getId, Function.identity())
+                    .blockOptional()
+                    .orElse(Map.of());
+        } catch (Exception e) {
+            log.warn("event-service недоступен для заполнения броней данными событий: {}", e.getMessage());
+            return Map.of();
+        }
     }
 
     private BookingResponse fillEvent(Booking booking, EventDto event) {

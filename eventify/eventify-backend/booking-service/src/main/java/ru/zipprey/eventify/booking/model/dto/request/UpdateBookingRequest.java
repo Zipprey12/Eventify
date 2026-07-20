@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class UpdateBookingRequest {
 
-    private Integer ticketCount;
+    private Integer ticketsCount;
 
 }

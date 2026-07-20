@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.booking.model.entity.Booking;
 
 import java.time.Instant;
@@ -16,6 +17,8 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByCustomerEmail(String email);
+
+    List<Booking> findAllByConfirmedTrue();
 
     @Query("""
             SELECT b FROM Booking b
@@ -30,6 +33,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> deleteAllByEventId(long eventId);
 
+    @Transactional
     @Modifying
     @Query("DELETE FROM Booking b WHERE b.id = :id AND b.confirmed = false")
     int deleteByIdIfUnconfirmed(@Param("id") Long id);
@@ -37,6 +41,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b.id FROM Booking b WHERE b.confirmed = false AND b.expiryTime < :instant")
     List<Long> findExpiredUnconfirmedIds(@Param("instant") Instant instant);
 
+    @Transactional
     @Modifying
     @Query("DELETE FROM Booking b WHERE b.confirmed = false AND b.expiryTime < :instant")
     int deleteAllExpiredUnconfirmed(@Param("instant") Instant instant);

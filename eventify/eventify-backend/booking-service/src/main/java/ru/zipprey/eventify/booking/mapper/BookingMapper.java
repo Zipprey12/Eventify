@@ -21,7 +21,7 @@ public interface BookingMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "confirmed", constant = "false")
     @Mapping(target = "expiryTime", ignore = true)
-    @Mapping(target = "ticketsCount", source = "request.ticketCount")
+    @Mapping(target = "ticketsCount", source = "request.ticketsCount")
     Booking toEntity(CreateBookingRequest request, String customerEmail);
 
     default BookingResponse toResponse(Booking booking) {

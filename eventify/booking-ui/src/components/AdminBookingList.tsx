@@ -203,7 +203,7 @@ const AdminBookingList: React.FC = () => {
                           <div className="mt-1 flex items-center text-sm text-gray-500">
                             <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4" />
                             <p>
-                              {booking.event.title} • {booking.ticketCount} билетов
+                              {booking.event.title} • {booking.ticketsCount} билетов
                             </p>
                           </div>
                           <div className="mt-1 text-sm text-gray-500">

@@ -113,7 +113,7 @@ let mockBookings: Booking[] = [
     id: 1,
     event: mockEvents[0],
     customerEmail: mockUsers[0].email, // Иван Иванов
-    ticketCount: 2,
+    ticketsCount: 2,
     confirmed: true,
     createdAt: '2024-02-15T10:00:00Z',
   },
@@ -121,7 +121,7 @@ let mockBookings: Booking[] = [
     id: 2,
     event: mockEvents[0],
     customerEmail: mockUsers[2].email, // Мария Петрова
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: true,
     createdAt: '2024-02-16T14:30:00Z',
   },
@@ -129,7 +129,7 @@ let mockBookings: Booking[] = [
     id: 3,
     event: mockEvents[0],
     customerEmail: mockUsers[3].email, // Алексей Сидоров
-    ticketCount: 3,
+    ticketsCount: 3,
     confirmed: false,
     createdAt: '2024-02-17T09:15:00Z',
     expiryTime: '2024-02-24T09:15:00Z',
@@ -138,7 +138,7 @@ let mockBookings: Booking[] = [
     id: 4,
     event: mockEvents[0],
     customerEmail: mockUsers[4].email, // Елена Козлова
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: true,
     createdAt: '2024-02-18T16:45:00Z',
   },
@@ -146,7 +146,7 @@ let mockBookings: Booking[] = [
     id: 5,
     event: mockEvents[0],
     customerEmail: mockUsers[5].email, // Дмитрий Волков
-    ticketCount: 2,
+    ticketsCount: 2,
     confirmed: false,
     createdAt: '2024-02-19T11:20:00Z',
     expiryTime: '2024-02-26T11:20:00Z',
@@ -155,7 +155,7 @@ let mockBookings: Booking[] = [
     id: 6,
     event: mockEvents[0],
     customerEmail: mockUsers[6].email, // Анна Морозова
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: true,
     createdAt: '2024-02-20T13:10:00Z',
   },
@@ -163,7 +163,7 @@ let mockBookings: Booking[] = [
     id: 7,
     event: mockEvents[0],
     customerEmail: mockUsers[7].email, // Сергей Новиков
-    ticketCount: 4,
+    ticketsCount: 4,
     confirmed: false,
     createdAt: '2024-02-21T08:30:00Z',
     expiryTime: '2024-02-28T08:30:00Z',
@@ -174,7 +174,7 @@ let mockBookings: Booking[] = [
     id: 8,
     event: mockEvents[1],
     customerEmail: mockUsers[0].email, // Иван Иванов
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: false,
     createdAt: '2024-02-20T14:00:00Z',
     expiryTime: '2024-02-27T14:00:00Z',
@@ -183,7 +183,7 @@ let mockBookings: Booking[] = [
     id: 9,
     event: mockEvents[1],
     customerEmail: mockUsers[2].email, // Мария Петрова
-    ticketCount: 2,
+    ticketsCount: 2,
     confirmed: true,
     createdAt: '2024-02-21T10:30:00Z',
   },
@@ -191,7 +191,7 @@ let mockBookings: Booking[] = [
     id: 10,
     event: mockEvents[1],
     customerEmail: mockUsers[3].email, // Алексей Сидоров
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: true,
     createdAt: '2024-02-22T15:45:00Z',
   },
@@ -199,7 +199,7 @@ let mockBookings: Booking[] = [
     id: 11,
     event: mockEvents[1],
     customerEmail: mockUsers[4].email, // Елена Козлова
-    ticketCount: 3,
+    ticketsCount: 3,
     confirmed: false,
     createdAt: '2024-02-23T12:20:00Z',
     expiryTime: '2024-03-02T12:20:00Z',
@@ -208,7 +208,7 @@ let mockBookings: Booking[] = [
     id: 12,
     event: mockEvents[1],
     customerEmail: mockUsers[5].email, // Дмитрий Волков
-    ticketCount: 1,
+    ticketsCount: 1,
     confirmed: true,
     createdAt: '2024-02-24T09:15:00Z',
   },
@@ -216,7 +216,7 @@ let mockBookings: Booking[] = [
     id: 13,
     event: mockEvents[1],
     customerEmail: mockUsers[6].email, // Анна Морозова
-    ticketCount: 2,
+    ticketsCount: 2,
     confirmed: false,
     createdAt: '2024-02-25T16:30:00Z',
     expiryTime: '2024-03-04T16:30:00Z',
@@ -227,7 +227,7 @@ let mockBookings: Booking[] = [
     id: 14,
     event: mockEvents[2],
     customerEmail: mockUsers[0].email, // Иван Иванов
-    ticketCount: 5,
+    ticketsCount: 5,
     confirmed: true,
     createdAt: '2024-02-10T10:00:00Z',
   },
@@ -235,7 +235,7 @@ let mockBookings: Booking[] = [
     id: 15,
     event: mockEvents[2],
     customerEmail: mockUsers[2].email, // Мария Петрова
-    ticketCount: 3,
+    ticketsCount: 3,
     confirmed: true,
     createdAt: '2024-02-11T14:30:00Z',
   },
@@ -243,7 +243,7 @@ let mockBookings: Booking[] = [
     id: 16,
     event: mockEvents[2],
     customerEmail: mockUsers[3].email, // Алексей Сидоров
-    ticketCount: 4,
+    ticketsCount: 4,
     confirmed: true,
     createdAt: '2024-02-12T09:15:00Z',
   },
@@ -251,7 +251,7 @@ let mockBookings: Booking[] = [
     id: 17,
     event: mockEvents[2],
     customerEmail: mockUsers[4].email, // Елена Козлова
-    ticketCount: 2,
+    ticketsCount: 2,
     confirmed: true,
     createdAt: '2024-02-13T16:45:00Z',
   },
@@ -259,7 +259,7 @@ let mockBookings: Booking[] = [
     id: 18,
     event: mockEvents[2],
     customerEmail: mockUsers[5].email, // Дмитрий Волков
-    ticketCount: 6,
+    ticketsCount: 6,
     confirmed: true,
     createdAt: '2024-02-14T11:20:00Z',
   },
@@ -267,7 +267,7 @@ let mockBookings: Booking[] = [
     id: 19,
     event: mockEvents[2],
     customerEmail: mockUsers[6].email, // Анна Морозова
-    ticketCount: 3,
+    ticketsCount: 3,
     confirmed: true,
     createdAt: '2024-02-15T13:10:00Z',
   },
@@ -275,7 +275,7 @@ let mockBookings: Booking[] = [
     id: 20,
     event: mockEvents[2],
     customerEmail: mockUsers[7].email, // Сергей Новиков
-    ticketCount: 7,
+    ticketsCount: 7,
     confirmed: true,
     createdAt: '2024-02-16T08:30:00Z',
   },
@@ -414,18 +414,18 @@ class MockApiService {
       throw new Error('Event not found');
     }
 
-    if (event.availableTickets < data.ticketCount) {
+    if (event.availableTickets < data.ticketsCount) {
       throw new Error('Not enough available tickets');
     }
 
     // Update available tickets
-    event.availableTickets -= data.ticketCount;
+    event.availableTickets -= data.ticketsCount;
 
     const newBooking: Booking = {
       id: Math.max(...mockBookings.map(b => b.id)) + 1,
       event,
       customerEmail: mockUsers[0].email, // Иван Иванов (текущий пользователь)
-      ticketCount: data.ticketCount,
+      ticketsCount: data.ticketsCount,
       confirmed: false,
       createdAt: new Date().toISOString(),
       expiryTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
@@ -460,7 +460,7 @@ class MockApiService {
     // Restore available tickets
     const event = mockEvents.find(e => e.id === booking.event.id);
     if (event) {
-      event.availableTickets += booking.ticketCount;
+      event.availableTickets += booking.ticketsCount;
     }
 
     mockBookings.splice(bookingIndex, 1);
@@ -520,7 +520,7 @@ class MockApiService {
     if (!booking.confirmed) {
       const event = mockEvents.find(e => e.id === booking.event.id);
       if (event) {
-        event.availableTickets += booking.ticketCount;
+        event.availableTickets += booking.ticketsCount;
       }
     }
 

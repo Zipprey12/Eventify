@@ -40,8 +40,13 @@ jwt:
   secret: ${JWT_SECRET:}
   expiration: 86400000
 
+telegram:
+  bot-username: ${BOT_NAME:}
+
 internal:
   secret: ${NOTIFICATION_INTERNAL_API_KEY:}
+  trusted-services:
+    telegram-bot: ${BOT_INTERNAL_API_KEY:}
 
 booking-service:
   base-url: http://booking-service:8083

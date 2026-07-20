@@ -16,7 +16,11 @@ import ru.zipprey.eventify.outbox.service.OutboxDataService;
 import ru.zipprey.eventify.outbox.service.OutboxTypeRegistry;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 @Component
@@ -41,26 +45,68 @@ public class OutboxEnrichmentScheduler {
             return;
         }
 
+        Map<Long, EventDto> eventsById;
+        try {
+            eventsById = fetchNeededEvents(pending);
+        } catch (Exception e) {
+            log.error("Не удалось получить данные событий. Повтор на следующем цикле: {}",
+                    e.getMessage());
+            return;
+        }
+
         for (var event : pending) {
             try {
-                enrichEvent(event);
+                enrichEvent(event, eventsById);
             } catch (Exception e) {
-                log.error("Ошибка заполнения outbox-события id={}: {}", event.getId(), e.getMessage());
+                log.error("Ошибка заполнения события id={}: {}", event.getId(), e.getMessage());
             }
         }
     }
 
-    private void enrichEvent(OutboxEvent event) {
+    private Map<Long, EventDto> fetchNeededEvents(List<OutboxEvent> pending) {
+        var eventIds = pending.stream()
+                .map(this::extractEventId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return caller.findByIds(eventIds)
+                .collectMap(EventDto::getId, Function.identity())
+                .blockOptional()
+                .orElse(Map.of());
+    }
+
+    private Long extractEventId(OutboxEvent event) {
+        try {
+            return switch (event.getTopic()) {
+                case CONFIRMED -> objectMapper.readValue(event.getPayload(), BookingConfirmedMessage.class).eventId();
+                case DELETED_BY_ADMIN ->
+                        objectMapper.readValue(event.getPayload(), BookingDeletedByAdminMessage.class).eventId();
+                case CANCELED -> objectMapper.readValue(event.getPayload(), BookingDeletedMessage.class).eventId();
+                default -> null;
+            };
+        } catch (Exception e) {
+            log.warn("Не удалось прочитать тело outbox-события id={} для извлечения eventId: {}",
+                    event.getId(), e.getMessage());
+            return null;
+        }
+    }
+
+    private void enrichEvent(OutboxEvent event, Map<Long, EventDto> eventsById) {
         switch (event.getTopic()) {
-            case CONFIRMED -> enrichConfirmedMessage(event);
-            case DELETED_BY_ADMIN -> enrichDeletedByAdminMessage(event);
-            case CANCELED -> enrichDeletedMessage(event);
+            case CONFIRMED -> enrichConfirmedMessage(event, eventsById);
+            case DELETED_BY_ADMIN -> enrichDeletedByAdminMessage(event, eventsById);
+            case CANCELED -> enrichDeletedMessage(event, eventsById);
             default -> log.warn("Неизвестный топик для заполнения: {}", event.getTopic());
         }
     }
 
-    private void enrichConfirmedMessage(OutboxEvent event) {
-        enrich(event, BookingConfirmedMessage.class, BookingConfirmedMessage::eventId,
+    private void enrichConfirmedMessage(OutboxEvent event, Map<Long, EventDto> eventsById) {
+        enrich(event, eventsById, BookingConfirmedMessage.class, BookingConfirmedMessage::eventId,
                 (p, e) -> new BookingConfirmedMessage(
                         p.bookingId(),
                         p.eventId(),
@@ -70,8 +116,8 @@ public class OutboxEnrichmentScheduler {
                         p.ticketsCount()));
     }
 
-    private void enrichDeletedByAdminMessage(OutboxEvent event) {
-        enrich(event, BookingDeletedByAdminMessage.class, BookingDeletedByAdminMessage::eventId,
+    private void enrichDeletedByAdminMessage(OutboxEvent event, Map<Long, EventDto> eventsById) {
+        enrich(event, eventsById, BookingDeletedByAdminMessage.class, BookingDeletedByAdminMessage::eventId,
                 (p, e) -> new BookingDeletedByAdminMessage(
                         p.bookingId(),
                         p.eventId(),
@@ -82,8 +128,8 @@ public class OutboxEnrichmentScheduler {
                         p.wasConfirmed()));
     }
 
-    private void enrichDeletedMessage(OutboxEvent event) {
-        enrich(event, BookingDeletedMessage.class, BookingDeletedMessage::eventId,
+    private void enrichDeletedMessage(OutboxEvent event, Map<Long, EventDto> eventsById) {
+        enrich(event, eventsById, BookingDeletedMessage.class, BookingDeletedMessage::eventId,
                 (p, e) -> new BookingDeletedMessage(
                         p.eventId(),
                         p.bookingId(),
@@ -97,16 +143,22 @@ public class OutboxEnrichmentScheduler {
 
     private <P> void enrich(
             OutboxEvent event,
+            Map<Long, EventDto> eventsById,
             Class<P> payloadClass,
             ToLongFunction<P> eventIdExtractor,
             BiFunction<P, EventDto, Object> enricher) {
 
         var payload = objectMapper.readValue(event.getPayload(), payloadClass);
-        var eventDto = find(eventIdExtractor.applyAsLong(payload), event);
-        if (eventDto == null) return;
+        var eventDto = eventsById.get(eventIdExtractor.applyAsLong(payload));
+        if (eventDto == null) {
+            log.info("Не удалось заполнить {}, т.к событие {} удалено или недоступно. Сообщение не будет опубликовано",
+                    event.getTopic(), eventIdExtractor.applyAsLong(payload));
+            outboxDataService.markUnavailable(event);
+            return;
+        }
 
         var enriched = enricher.apply(payload, eventDto);
-        logEnrich(event.getTopic());
+        log.info("Заполнение {} ", event.getTopic());
 
         var applied = outboxDataService.markReady(
                 event,
@@ -114,21 +166,7 @@ public class OutboxEnrichmentScheduler {
                 typeRegistry.aliasFor(enriched.getClass())
         );
         if (!applied) {
-            log.debug("Событие id={} уже обработано, пропуск.", event.getId());
+            log.debug("Событие id={} обработано, пропуск.", event.getId());
         }
-    }
-
-    private EventDto find(Long eventId, OutboxEvent event) {
-        try {
-            return caller.findById(eventId).block();
-        } catch (EventNotFoundException e) {
-            log.info("Не удалось заполнить {}, т.к событие {} удалено. Сообщение не будет проброшено", event.getTopic(), eventId);
-            outboxDataService.markUnavailable(event);
-        }
-        return null;
-    }
-
-    private void logEnrich(String topic) {
-        log.info("Заполнение {} ", topic);
     }
 }

@@ -3,12 +3,14 @@ package ru.zipprey.eventify.notification.service.telegram;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.notification.model.enity.TelegramLink;
 import ru.zipprey.eventify.notification.repository.telegram.TelegramLinkRepository;
 import ru.zipprey.eventify.notification.service.EmailValidator;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,5 +38,23 @@ public class TelegramServiceImpl implements TelegramService {
 
         repository.save(link);
         return code;
+    }
+
+    @Override
+    @Transactional
+    public Optional<String> consumeLinkCode(long chatId, String code) {
+        var link = repository.findByLinkCode(code).orElse(null);
+
+        if (link == null || link.getLinkCodeExpiresAt() == null
+                || link.getLinkCodeExpiresAt().isBefore(Instant.now())) {
+            return Optional.empty();
+        }
+
+        link.setChatId(chatId);
+        link.setLinkCode(null);
+        link.setLinkCodeExpiresAt(null);
+        repository.save(link);
+
+        return Optional.of(link.getCustomerEmail());
     }
 }

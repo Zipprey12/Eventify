@@ -28,7 +28,7 @@ public class SecurityConfig extends BaseSecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return configureCommon(http)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/internal/bookings/emails")
+                        .requestMatchers(HttpMethod.GET, "/internal/**")
                         .hasRole(INTERNAL_SERVICE_ROLE)
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/actuator/health").permitAll()

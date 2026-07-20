@@ -8,7 +8,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.zipprey.eventify.booking.exception.EventServiceUnavailableException;
 import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
-import ru.zipprey.eventify.eventapi.exception.NotEnoughTicketsException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 
 import java.util.List;
@@ -43,32 +42,6 @@ public class EventServiceCallerImpl implements EventsServiceCaller {
                         response ->
                                 Mono.error(new EventServiceUnavailableException(ids.getFirst())))
                 .bodyToFlux(EventDto.class);
-    }
-
-    @Override
-    public Mono<EventDto> bookTickets(long eventId, int count) {
-        var spec = webClient.put()
-                .uri(uriBuilder -> uriBuilder.path("/events/{id}/book")
-                        .queryParam("count", count)
-                        .build(eventId))
-                .retrieve();
-
-        return addDefaultHandlers(eventId, spec)
-                .onStatus(status -> status.value() == 409,
-                        response -> Mono.error(new NotEnoughTicketsException(String.valueOf(eventId), 0)))
-                .bodyToMono(EventDto.class);
-    }
-
-    @Override
-    public Mono<EventDto> freeUpPlaces(long eventId, int count) {
-        var spec = webClient.put()
-                .uri(uriBuilder -> uriBuilder.path("/events/{id}/free")
-                        .queryParam("count", count)
-                        .build(eventId))
-                .retrieve();
-
-        return addDefaultHandlers(eventId, spec)
-                .bodyToMono(EventDto.class);
     }
 
     private WebClient.ResponseSpec addDefaultHandlers(long eventId, WebClient.ResponseSpec responseSpec) {

@@ -13,9 +13,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RedisKafkaDeduplicateService implements KafkaDeduplicateService {
 
-    private static final Duration DEDUP_TTL = Duration.ofMinutes(30);
     public static final String DEDUP_PREFIX = "dedup:";
-
+    private static final Duration DEDUP_TTL = Duration.ofMinutes(30);
     private final StringRedisTemplate redis;
 
     @Override

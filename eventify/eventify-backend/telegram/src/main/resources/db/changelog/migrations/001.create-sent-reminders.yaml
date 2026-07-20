@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: zipprey
+      comment: Таблица отправленных напоминаний
+      changes:
+        - createTable:
+            tableName: sent_reminders
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: booking_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: chat_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: sent_reminders
+            columnNames: booking_id, chat_id
+            constraintName: uq_sent_reminders_booking_chat

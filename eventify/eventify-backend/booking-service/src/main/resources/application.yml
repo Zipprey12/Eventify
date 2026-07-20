@@ -23,6 +23,7 @@ internal:
   secret: ${BOOKING_INTERNAL_API_KEY}
   trusted-services:
     notification-service: ${NOTIFICATION_INTERNAL_API_KEY:}
+    telegram-bot: ${BOT_INTERNAL_API_KEY:}
 
 event-service:
   base-url: http://event-service:8082
