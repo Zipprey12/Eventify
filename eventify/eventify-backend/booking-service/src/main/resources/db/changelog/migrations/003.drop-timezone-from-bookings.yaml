@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: bookings-3
+      author: zipprey
+      comment: timezone нигде не заполнялось и не читалось — мёртвое поле
+      changes:
+        - dropColumn:
+            tableName: bookings
+            columnName: timezone

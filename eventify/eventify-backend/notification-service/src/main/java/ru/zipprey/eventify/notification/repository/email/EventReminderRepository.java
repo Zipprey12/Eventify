@@ -15,9 +15,13 @@ public interface EventReminderRepository extends JpaRepository<EventReminder, Lo
 
     boolean existsByBookingId(Long bookingId);
 
-    void deleteByBookingId(Long bookingId);
+    @Modifying
+    @Query("DELETE FROM EventReminder r WHERE r.bookingId = :bookingId")
+    void deleteByBookingId(@Param("bookingId") Long bookingId);
 
-    void deleteAllByBookingIdIn(List<Long> bookingIds);
+    @Modifying
+    @Query("DELETE FROM EventReminder r WHERE r.bookingId IN :bookingIds")
+    void deleteAllByBookingIdIn(@Param("bookingIds") List<Long> bookingIds);
 
     @Query("SELECT r FROM EventReminder r WHERE r.sent = false AND r.remindAt <= :instant")
     List<EventReminder> findReminders(@Param("instant") Instant instant);

@@ -71,8 +71,8 @@ public class EventServiceImpl implements EventService {
                 mapper.toCreateMessage(saved),
                 OutboxStatus.READY
         );
-        outboxDataService.add(outboxEvent);
 
+        outboxDataService.add(outboxEvent);
         return mapper.toDto(saved);
     }
 
@@ -85,41 +85,50 @@ public class EventServiceImpl implements EventService {
         var previousDate = existing.getDate();
         mapper.updateEntity(request, existing);
 
-        var requestTotalTickets = request.getTotalTickets();
-        var existingTotalTickets = existing.getTotalTickets();
-
-        Integer deficit = null;
-        if (requestTotalTickets != null
-                && !Objects.equals(requestTotalTickets, existingTotalTickets)) {
-
-            var booked = existingTotalTickets - existing.getAvailableTickets();
-            if (booked > requestTotalTickets) {
-                deficit = booked - requestTotalTickets;
-                existing.setAvailableTickets(0);
-            } else {
-                var diff = requestTotalTickets - existingTotalTickets;
-                existing.setAvailableTickets(existing.getAvailableTickets() + diff);
-            }
-            existing.setTotalTickets(requestTotalTickets);
-        }
-
+        var deficit = calculateTicketCapacity(existing, request);
         var saved = repository.save(existing);
 
-        if (!previousDate.equals(saved.getDate())) {
-            var dateChangedEvent = eventFactory.create(
-                    Topics.DATE_CHANGED.getTopic(),
-                    String.valueOf(saved.getId()),
-                    new EventDateChangedMessage(saved.getId(), saved.getTitle(), saved.getDate()),
-                    OutboxStatus.READY
-            );
-            outboxDataService.add(dateChangedEvent);
-        }
+        publishDateChangedIfNeeded(previousDate, saved);
 
         if (deficit != null) {
             resolveTicketsDeficit(saved, deficit);
         }
-
         return mapper.toDto(saved);
+    }
+
+    private Integer calculateTicketCapacity(Event existing, EventRequest request) {
+        var requestTickets = request.getTotalTickets();
+        var existingTickets = existing.getTotalTickets();
+
+        if (requestTickets == null || Objects.equals(requestTickets, existingTickets)) {
+            return null;
+        }
+
+        Integer deficit = null;
+        var booked = existingTickets - existing.getAvailableTickets();
+        if (booked > requestTickets) {
+            deficit = booked - requestTickets;
+            existing.setAvailableTickets(0);
+        } else {
+            var diff = requestTickets - existingTickets;
+            existing.setAvailableTickets(existing.getAvailableTickets() + diff);
+        }
+        existing.setTotalTickets(requestTickets);
+        return deficit;
+    }
+
+    private void publishDateChangedIfNeeded(Instant previousDate, Event saved) {
+        if (previousDate.equals(saved.getDate())) {
+            return;
+        }
+
+        var dateChangedEvent = eventFactory.create(
+                Topics.DATE_CHANGED.getTopic(),
+                String.valueOf(saved.getId()),
+                new EventDateChangedMessage(UUID.randomUUID(), saved.getId(), saved.getTitle(), saved.getDate()),
+                OutboxStatus.READY
+        );
+        outboxDataService.add(dateChangedEvent);
     }
 
     @Transactional

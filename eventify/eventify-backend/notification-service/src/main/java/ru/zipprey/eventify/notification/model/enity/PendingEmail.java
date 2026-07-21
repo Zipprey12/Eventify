@@ -37,6 +37,10 @@ public class PendingEmail {
     @Column(nullable = false)
     private PendingEmailStatus status;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer attempts = 0;
+
     @Column(name = "sent_at")
     private Instant sentAt;
 }

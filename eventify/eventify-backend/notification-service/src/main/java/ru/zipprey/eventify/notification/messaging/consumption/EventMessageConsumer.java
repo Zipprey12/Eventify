@@ -42,6 +42,12 @@ public class EventMessageConsumer extends MessageConsumer {
     public void handleDateChanged(EventDateChangedMessage message) {
         logMessage(EVENT_DATE_CHANGED, message);
 
+        var operationId = message.operationId();
+        if (getDeduplicateService().isDuplicate(EVENT_DATE_CHANGED, operationId)) {
+            logDuplicate(EVENT_DATE_CHANGED, operationId);
+            return;
+        }
+
         getEmailService().notify(message);
         safeExecute(() -> reminderService.rescheduleForEventDateChange(message.eventId(), message.newDateTime()),
                 "rescheduleForEventDateChange, eventId=" + message.eventId());

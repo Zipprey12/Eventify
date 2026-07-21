@@ -16,9 +16,9 @@ public class RedisKafkaDeduplicateService implements KafkaDeduplicateService {
     private final StringRedisTemplate redis;
 
     @Override
-    public boolean isDuplicate(String topic, UUID operationId) {
-        var key = "dedup:" + topic + ":" + operationId.toString();
-        var isNew = redis.opsForValue().setIfAbsent(key, "1", DEDUP_TTL);
+    public boolean isDuplicate(String topic, Object key) {
+        var fullKey = "dedup:" + topic + ":" + key.toString();
+        var isNew = redis.opsForValue().setIfAbsent(fullKey, "1", DEDUP_TTL);
         return Boolean.FALSE.equals(isNew);
     }
 }

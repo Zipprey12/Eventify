@@ -36,7 +36,7 @@ public class NotificationTimeCommand extends AsyncCommand {
     protected void handle(long chatId, String[] args) {
         var hours = parseHours(args);
         if (hours.isEmpty()) {
-            sender.sendText(chatId, "Формат: /notification_time <часы, 1..24>. Например: /notification_time 12");
+            sender.sendText(chatId, "Формат: /notification_time <часы, 1..24>.\nНапример: /notification_time 12");
             return;
         }
 

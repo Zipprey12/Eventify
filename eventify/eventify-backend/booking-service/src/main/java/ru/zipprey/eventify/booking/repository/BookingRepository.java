@@ -31,7 +31,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByEventIdAndConfirmedTrueOrderByCreatedAtDesc(Long eventId);
 
-    List<Booking> deleteAllByEventId(long eventId);
+    List<Booking> findAllByEventId(long eventId);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Booking b WHERE b.eventId = :eventId")
+    void deleteAllByEventId(@Param("eventId") long eventId);
 
     @Transactional
     @Modifying

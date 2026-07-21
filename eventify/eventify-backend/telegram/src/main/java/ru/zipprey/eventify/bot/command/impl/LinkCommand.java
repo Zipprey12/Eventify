@@ -3,6 +3,8 @@ package ru.zipprey.eventify.bot.command.impl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.bot.command.AsyncCommand;
+import ru.zipprey.eventify.bot.exception.TelegramInvalidCodeException;
+import ru.zipprey.eventify.bot.exception.TelegramLinkedToAnotherUserException;
 import ru.zipprey.eventify.bot.message.caller.NotificationServiceCaller;
 import ru.zipprey.eventify.bot.model.entity.TelegramSubscription;
 import ru.zipprey.eventify.bot.repository.TelegramSubscriptionRepository;
@@ -44,18 +46,24 @@ public class LinkCommand extends AsyncCommand {
             return;
         }
 
-        var email = notificationCaller.link(chatId, args[0]);
-        if (email.isEmpty()) {
+        String email;
+        try {
+            email = notificationCaller.link(chatId, args[0]);
+        } catch (TelegramInvalidCodeException e) {
             sender.sendText(chatId, "Код недействителен или устарел. Получите новый код на сайте и повторите.");
+            return;
+        } catch (TelegramLinkedToAnotherUserException e) {
+            sender.sendText(chatId, e.getMessage() +
+                    "\nСначала отвяжите его командой /stop");
             return;
         }
 
         subscriptionRepository.save(TelegramSubscription.builder()
                 .chatId(chatId)
-                .customerEmail(email.get())
+                .customerEmail(email)
                 .notifyBeforeHours(DEFAULT_NOTIFY_BEFORE_HOURS)
                 .build());
 
-        sender.sendText(chatId, "Telegram успешно привязан к аккаунту " + email.get() + ".\n\n" + HelpCommand.TEXT);
+        sender.sendText(chatId, "Telegram успешно привязан к аккаунту " + email + ".\n\n" + HelpCommand.TEXT);
     }
 }

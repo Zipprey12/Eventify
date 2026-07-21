@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: pending-emails-2
+      author: zipprey
+      comment: Счётчик попыток
+      changes:
+        - addColumn:
+            tableName: pending_emails
+            columns:
+              - column:
+                  name: attempts
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

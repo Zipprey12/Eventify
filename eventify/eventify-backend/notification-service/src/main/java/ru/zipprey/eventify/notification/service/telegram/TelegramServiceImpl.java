@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.zipprey.eventify.notification.exception.TelegramInvalidCodeException;
+import ru.zipprey.eventify.notification.exception.TelegramLinkedToAnotherUserException;
 import ru.zipprey.eventify.notification.model.enity.TelegramLink;
 import ru.zipprey.eventify.notification.repository.telegram.TelegramLinkRepository;
 import ru.zipprey.eventify.notification.service.EmailValidator;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -42,19 +43,31 @@ public class TelegramServiceImpl implements TelegramService {
 
     @Override
     @Transactional
-    public Optional<String> consumeLinkCode(long chatId, String code) {
+    public String consumeLinkCode(long chatId, String code) {
         var link = repository.findByLinkCode(code).orElse(null);
 
         if (link == null || link.getLinkCodeExpiresAt() == null
                 || link.getLinkCodeExpiresAt().isBefore(Instant.now())) {
-            return Optional.empty();
+            throw new TelegramInvalidCodeException();
         }
+
+        repository.findByChatId(chatId)
+                .filter(existing -> !existing.getCustomerEmail().equals(link.getCustomerEmail()))
+                .ifPresent(existing -> {
+                    throw new TelegramLinkedToAnotherUserException();
+                });
 
         link.setChatId(chatId);
         link.setLinkCode(null);
         link.setLinkCodeExpiresAt(null);
         repository.save(link);
 
-        return Optional.of(link.getCustomerEmail());
+        return link.getCustomerEmail();
+    }
+
+    @Override
+    @Transactional
+    public void unlink(long chatId) {
+        repository.deleteByChatId(chatId);
     }
 }

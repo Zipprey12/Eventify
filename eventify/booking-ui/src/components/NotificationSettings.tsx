@@ -235,7 +235,7 @@ const NotificationSettings: React.FC = () => {
               {telegramLink && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800 mb-3">
-                    Перейдите по ссылке — Telegram сам предложит отправить команду для привязки:
+                    Нажмите для привязки аккаунта:
                   </p>
                   <a
                     href={telegramLink}

@@ -1,5 +1,6 @@
 package ru.zipprey.eventify.bot.command.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.bot.command.AsyncCommand;
@@ -10,6 +11,7 @@ import ru.zipprey.eventify.bot.service.sender.MessageSender;
 
 import java.util.concurrent.Executor;
 
+@Slf4j
 @Component
 public class StopCommand extends AsyncCommand {
 
@@ -43,7 +45,12 @@ public class StopCommand extends AsyncCommand {
 
     @Override
     protected void handle(long chatId, String[] args) {
-        notificationCaller.unlink(chatId);
+        try {
+            notificationCaller.unlink(chatId);
+        } catch (Exception e) {
+            log.warn("Не удалось уведомить notification-service об отвязке chatId={}: {}", chatId, e.getMessage());
+        }
+
         sentReminderRepository.deleteByChatId(chatId);
         subscriptionRepository.deleteById(chatId);
 

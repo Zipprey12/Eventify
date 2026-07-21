@@ -54,6 +54,7 @@ public class BookingMessageConsumer extends MessageConsumer {
         getEmailService().notify(message);
         safeExecute(() -> deleteAllReminds(message.bookings()), "cancelAll, operationId=" + id);
     }
+
     @KafkaListener(topics = BOOKING_CASCADE_CANCELED, groupId = "notification-service-booking-cascade-canceled")
     public void handleBookingCascadeCanceled(BookingsCascadeCanceledMessage message) {
         logMessage(BOOKING_CASCADE_CANCELED, message);

@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.zipprey.eventify.booking.service.event.EventsServiceCaller;
-import ru.zipprey.eventify.eventapi.exception.EventNotFoundException;
 import ru.zipprey.eventify.eventapi.model.EventDto;
 import ru.zipprey.eventify.kafka.booking.BookingConfirmedMessage;
 import ru.zipprey.eventify.kafka.booking.BookingDeletedByAdminMessage;

@@ -12,4 +12,5 @@ public interface PendingEmailService {
 
     boolean markSkippedUnconfirmed(Long id);
 
+    void registerFailedAttempt(Long id);
 }

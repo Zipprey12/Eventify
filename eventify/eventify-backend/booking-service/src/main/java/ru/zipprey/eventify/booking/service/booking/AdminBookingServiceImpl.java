@@ -122,8 +122,10 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     }
 
     @Override
+    @Transactional
     public List<Booking> cancelAllRelatedEvent(long eventId) {
-        var deleted = repository.deleteAllByEventId(eventId);
+        var deleted = repository.findAllByEventId(eventId);
+        repository.deleteAllByEventId(eventId);
         queueService.removeAll(deleted.stream()
                 .map(Booking::getId)
                 .toList());

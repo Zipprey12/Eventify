@@ -33,6 +33,4 @@ public class Booking {
     private Instant expiryTime;
 
     private Boolean confirmed;
-
-    private String timezone;
 }

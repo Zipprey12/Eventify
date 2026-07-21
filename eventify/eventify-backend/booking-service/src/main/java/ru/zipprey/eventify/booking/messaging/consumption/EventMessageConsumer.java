@@ -95,6 +95,12 @@ public class EventMessageConsumer {
     @KafkaListener(topics = EVENT_DELETED, groupId = "booking-service-event-deleted")
     public void handle(EventDeletedMessage message) {
         var eventId = message.eventId();
+
+        if (deduplicateService.isDuplicate(EVENT_DELETED, eventId)) {
+            log.info("Дубль {}: eventId={}, пропуск операции", EVENT_DELETED, eventId);
+            return;
+        }
+
         var canceled = bookingService.cancelAllRelatedEvent(eventId);
         var publishing = new BookingsCascadeCanceledMessage(
                 eventId,

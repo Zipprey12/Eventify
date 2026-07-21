@@ -1,9 +1,9 @@
 package ru.zipprey.eventify.notification.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.zipprey.eventify.notification.exception.SettingsNotFoundException;
+import ru.zipprey.eventify.notification.exception.TelegramLinkNotFoundException;
 import ru.zipprey.eventify.notification.model.dto.SubscribedUserDto;
 import ru.zipprey.eventify.notification.model.dto.TelegramLinkDto;
 import ru.zipprey.eventify.notification.model.dto.request.LinkRequest;
@@ -30,48 +30,38 @@ public class TelegramInternalController {
     private final TelegramService telegramService;
 
     @PostMapping("/link")
-    public ResponseEntity<String> link(@RequestBody LinkRequest request) {
-        return telegramService.consumeLinkCode(request.chatId(), request.code())
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    public String link(@RequestBody LinkRequest request) {
+        return telegramService.consumeLinkCode(request.chatId(), request.code());
     }
 
     @GetMapping("/{chatId}")
-    public ResponseEntity<TelegramLinkDto> findByChatId(@PathVariable long chatId) {
-        var link = telegramLinkRepository.findByChatId(chatId).orElse(null);
-        if (link == null) {
-            return ResponseEntity.notFound().build();
-        }
+    public TelegramLinkDto findByChatId(@PathVariable long chatId) {
+        var link = telegramLinkRepository.findByChatId(chatId)
+                .orElseThrow(() -> new TelegramLinkNotFoundException(chatId));
 
         var hours = settingsRepository.findById(link.getCustomerEmail())
                 .map(Settings::getNotifyBeforeHours)
                 .orElse(null);
 
-        return ResponseEntity.ok(new TelegramLinkDto(link.getCustomerEmail(), hours, true));
+        return new TelegramLinkDto(link.getCustomerEmail(), hours, true);
     }
 
     @PutMapping("/{chatId}/notification-time")
-    public ResponseEntity<Void> updateNotificationTime(@PathVariable long chatId,
-                                                       @RequestBody NotificationTimeRequest request) {
-        var link = telegramLinkRepository.findByChatId(chatId).orElse(null);
-        if (link == null) {
-            return ResponseEntity.notFound().build();
-        }
+    public void updateNotificationTime(@PathVariable long chatId,
+                                       @RequestBody NotificationTimeRequest request) {
+        var link = telegramLinkRepository.findByChatId(chatId)
+                .orElseThrow(() -> new TelegramLinkNotFoundException(chatId));
 
-        var settings = settingsRepository.findById(link.getCustomerEmail()).orElse(null);
-        if (settings == null) {
-            return ResponseEntity.notFound().build();
-        }
+        var settings = settingsRepository.findById(link.getCustomerEmail())
+                .orElseThrow(() -> new SettingsNotFoundException(link.getCustomerEmail()));
 
         settings.setNotifyBeforeHours(request.hours());
         settingsRepository.save(settings);
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{chatId}")
-    public ResponseEntity<Void> unlink(@PathVariable long chatId) {
-        telegramLinkRepository.deleteByChatId(chatId);
-        return ResponseEntity.ok().build();
+    public void unlink(@PathVariable long chatId) {
+        telegramService.unlink(chatId);
     }
 
     @GetMapping("/subscribed")

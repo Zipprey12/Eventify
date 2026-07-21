@@ -2,10 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: event-reminders-1
       author: zipprey
-      comment: >
-        Таблица запланированных напоминаний о мероприятиях.
-        notify_before_hours нужен для обновления remind_at в одном 
-        UPDATE без запроса notification_settings
+      comment: Таблица запланированных напоминаний о мероприятиях
       changes:
         - createTable:
             tableName: event_reminders

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: telegram-links-2
+      author: zipprey
+      changes:
+        - addUniqueConstraint:
+            tableName: telegram_links
+            columnNames: chat_id
+            constraintName: uk_telegram_links_chat_id
