@@ -1,5 +1,6 @@
 package ru.zipprey.eventify.common.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,6 +12,6 @@ public enum Level {
     WARN("warn"),
     INFO("info");
 
-
+    @JsonValue
     private final String key;
 }

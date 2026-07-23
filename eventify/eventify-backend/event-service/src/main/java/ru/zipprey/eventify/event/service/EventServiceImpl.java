@@ -62,7 +62,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto create(EventRequest request) {
         var mapped = mapper.toEntity(request);
-        mapped.setAvailableTickets(request.getTotalTickets());
+        mapped.setAvailableTickets(request.totalTickets());
 
         var saved = repository.save(mapped);
         var outboxEvent = eventFactory.create(
@@ -97,7 +97,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Integer calculateTicketCapacity(Event existing, EventRequest request) {
-        var requestTickets = request.getTotalTickets();
+        var requestTickets = request.totalTickets();
         var existingTickets = existing.getTotalTickets();
 
         if (requestTickets == null || Objects.equals(requestTickets, existingTickets)) {

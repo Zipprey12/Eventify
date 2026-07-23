@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 
 import java.time.Instant;
@@ -22,6 +23,7 @@ public class BookingExpiryScheduler {
     @Value("${booking.expiry-batch-size:50}")
     private long batchSize;
 
+    @Transactional
     @Scheduled(fixedDelay = SCHEDULE_DELAY_MS)
     public void expireBookings() {
         var ids = queueService.pollDue(Instant.now(), batchSize);

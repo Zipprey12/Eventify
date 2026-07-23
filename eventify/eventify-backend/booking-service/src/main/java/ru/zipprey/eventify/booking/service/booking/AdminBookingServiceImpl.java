@@ -87,9 +87,8 @@ public class AdminBookingServiceImpl implements AdminBookingService {
 
         var events = safeFindEvents(eventIds);
         return found.map(booking -> {
-            var response = mapper.toResponse(booking);
-            response.setEvent(events.getOrDefault(booking.getEventId(), EventDto.deleted(booking.getEventId())));
-            return response;
+            var event = events.getOrDefault(booking.getEventId(), EventDto.deleted(booking.getEventId()));
+            return mapper.toResponse(booking, event);
         });
     }
 
@@ -135,7 +134,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     private Map<Long, EventDto> safeFindEvents(List<Long> eventIds) {
         try {
             return caller.findByIds(eventIds)
-                    .collectMap(EventDto::getId, Function.identity())
+                    .collectMap(EventDto::id, Function.identity())
                     .blockOptional()
                     .orElse(Map.of());
         } catch (Exception e) {

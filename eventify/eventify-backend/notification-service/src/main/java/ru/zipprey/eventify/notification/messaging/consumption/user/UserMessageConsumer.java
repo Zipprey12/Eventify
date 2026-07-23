@@ -1,4 +1,4 @@
-package ru.zipprey.eventify.notification.messaging.consumption;
+package ru.zipprey.eventify.notification.messaging.consumption.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

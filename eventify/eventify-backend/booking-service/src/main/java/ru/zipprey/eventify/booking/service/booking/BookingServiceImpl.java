@@ -67,10 +67,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse create(CreateBookingRequest request, Authentication authentication) {
-        var event = eventsCaller.findById(request.getEventId()).block();
+        var event = eventsCaller.findById(request.eventId()).block();
 
-        if (event.getAvailableTickets() < request.getTicketsCount()) {
-            throw new NotEnoughTicketsException(event.getTitle(), event.getAvailableTickets());
+        if (event.availableTickets() < request.ticketsCount()) {
+            throw new NotEnoughTicketsException(event.title(), event.availableTickets());
         }
 
         var entity = mapper.toEntity(request, getEmailKey(authentication));
@@ -119,9 +119,7 @@ public class BookingServiceImpl implements BookingService {
 
     private BookingResponse fillEvent(Booking booking) {
         var event = safeFindEvent(booking.getEventId());
-        var response = mapper.toResponse(booking);
-        response.setEvent(event);
-        return response;
+        return mapper.toResponse(booking, event);
     }
 
     private List<BookingResponse> fillEvents(List<Booking> bookings) {
@@ -134,10 +132,8 @@ public class BookingServiceImpl implements BookingService {
 
         return bookings.stream()
                 .map(b -> {
-                    var response = mapper.toResponse(b);
-                    var id = response.getEvent().getId();
-                    response.setEvent(events.getOrDefault(id, EventDto.deleted(id)));
-                    return response;
+                    var event = events.getOrDefault(b.getEventId(), EventDto.deleted(b.getEventId()));
+                    return mapper.toResponse(b, event);
                 })
                 .toList();
     }
@@ -154,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
     private Map<Long, EventDto> safeFindEvents(List<Long> eventIds) {
         try {
             return eventsCaller.findByIds(eventIds)
-                    .collectMap(EventDto::getId, Function.identity())
+                    .collectMap(EventDto::id, Function.identity())
                     .blockOptional()
                     .orElse(Map.of());
         } catch (Exception e) {

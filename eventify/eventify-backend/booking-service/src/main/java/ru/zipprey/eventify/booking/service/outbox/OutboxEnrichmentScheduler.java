@@ -74,7 +74,7 @@ public class OutboxEnrichmentScheduler {
         }
 
         return caller.findByIds(eventIds)
-                .collectMap(EventDto::getId, Function.identity())
+                .collectMap(EventDto::id, Function.identity())
                 .blockOptional()
                 .orElse(Map.of());
     }
@@ -110,8 +110,8 @@ public class OutboxEnrichmentScheduler {
                         p.bookingId(),
                         p.eventId(),
                         p.customerEmail(),
-                        e.getTitle(),
-                        e.getDateTime(),
+                        e.title(),
+                        e.dateTime(),
                         p.ticketsCount()));
     }
 
@@ -121,8 +121,8 @@ public class OutboxEnrichmentScheduler {
                         p.bookingId(),
                         p.eventId(),
                         p.customerEmail(),
-                        e.getTitle(),
-                        e.getDateTime(),
+                        e.title(),
+                        e.dateTime(),
                         p.ticketsCount(),
                         p.wasConfirmed()));
     }
@@ -133,8 +133,8 @@ public class OutboxEnrichmentScheduler {
                         p.eventId(),
                         p.bookingId(),
                         p.customerEmail(),
-                        e.getTitle(),
-                        e.getDateTime(),
+                        e.title(),
+                        e.dateTime(),
                         p.ticketsCount(),
                         p.wasConfirmed())
         );

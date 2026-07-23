@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto register(RegisterRequest request) {
-        String requestEmail = request.getEmail();
+        String requestEmail = request.email();
         if (userRepository.findByEmail(requestEmail).isPresent()) {
             throw new UserAlreadyExistException(requestEmail);
         }
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
         var user = User.builder()
                 .email(requestEmail)
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(passwordEncoder.encode(request.password()))
                 .role(role)
                 .build();
 

@@ -23,10 +23,4 @@ public interface BookingMapper {
     @Mapping(target = "expiryTime", ignore = true)
     @Mapping(target = "ticketsCount", source = "request.ticketsCount")
     Booking toEntity(CreateBookingRequest request, String customerEmail);
-
-    default BookingResponse toResponse(Booking booking) {
-        var eventDto = new EventDto();
-        eventDto.setId(booking.getEventId());
-        return toResponse(booking, eventDto);
-    }
 }

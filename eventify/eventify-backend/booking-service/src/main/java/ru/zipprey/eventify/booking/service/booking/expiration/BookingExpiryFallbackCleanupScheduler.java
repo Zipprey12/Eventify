@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.zipprey.eventify.booking.repository.BookingRepository;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ public class BookingExpiryFallbackCleanupScheduler {
     private final BookingRepository repository;
     private final ExpiryQueueService queueService;
 
+    @Transactional
     @Scheduled(fixedDelayString = "${booking.expiry-fallback-delay:3600000}")
     public void verify() {
         var start = Instant.now().minus(1, ChronoUnit.MINUTES);

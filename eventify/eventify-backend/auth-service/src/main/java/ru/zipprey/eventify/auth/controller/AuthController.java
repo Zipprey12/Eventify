@@ -31,25 +31,25 @@ public class AuthController {
     @PostMapping("/register")
     public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
         var userDto = userService.register(request);
-        var token = jwtService.generateToken(userDto.getEmail(), userDto.getRole());
+        var token = jwtService.generateToken(userDto.email(), userDto.role());
 
-        log.info("Запрос на регистрацию пользователя: {}", request.getEmail());
-        return new AuthResponse(token, userDto.getRole());
+        log.info("Запрос на регистрацию пользователя: {}", request.email());
+        return new AuthResponse(token, userDto.role());
     }
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         try {
             var authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
             var principal = (UserPrincipal) authentication.getPrincipal();
             var token = jwtService.generateToken(Objects.requireNonNull(principal).getUsername(), principal.getRole());
 
-            log.info("Успешный вход: {}", request.getEmail());
+            log.info("Успешный вход: {}", request.email());
             return new AuthResponse(token, principal.getRole());
         } catch (AuthenticationException e) {
-            log.warn("Неудачный вход: {}", request.getEmail());
+            log.warn("Неудачный вход: {}", request.email());
             throw e;
         }
     }
